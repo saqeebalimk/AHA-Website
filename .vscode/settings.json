@@ -1,0 +1,7 @@
+{
+    "git.ignoredRepositories": [
+        "/home/adminpc"
+    ],
+    "git.repositoryScanMaxDepth": 1,
+    "git.autoRepositoryDetection": "openEditors"
+}
