@@ -4,8 +4,8 @@ import requests
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import ChatSession, Message, ServiceRequest, DiagnosticLog, KnowledgeBaseArticle, KnownVisualIssue
-from .knowledge_base import get_heuristic_reply, DEFAULT_FALLBACK_MESSAGE
+from chatbot_api.models import ChatSession, Message, ServiceRequest, DiagnosticLog, KnowledgeBaseArticle, KnownVisualIssue
+from chatbot_api.knowledge_base import get_heuristic_reply, DEFAULT_FALLBACK_MESSAGE
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Token-Optimised System Prompt (approx 220 tokens)
@@ -14,25 +14,20 @@ SYSTEM_PROMPT = """You are the 'AHA Tech Advisor', an elite AI audio engineer fo
 Your goal is to provide fluid, ChatGPT-like conversational flows while diagnosing AV equipment faults.
 
 CORE RULES:
-1. NEVER repeat yourself. If a user asks a follow-up, continue the natural diagnostic flow.
-2. Remember past conversational context flawlessly.
-3. Keep responses highly technical but warm, professional, and relatively brief.
-4. When a user reports a broken device (e.g., "no power", "PCB issue"), ALWAYS ask for the Brand & Model first.
-5. Once you have the model, ask ONE follow up diagnostic question (e.g. LED colors, burning smells).
-6. IF THEY ASK TO BOOK A REPAIR, collect their details one by one sequentially:
-   - Ask for Name.
-   - Then Phone number.
-   - Then Email.
-   - Then Device Model.
-   - Then Issue.
-   Once all 5 are gathered, summarize it, and provide the link: [https://wa.me/919964689378]
-7. NEVER give exact price quotes. Always say: "Pricing depends strictly on the exact model and bench diagnostic results."
-8. Core Services: L4 PCB Repair, Amp/AVR Repair, Home Theatres, Dolby Atmos Calibration, Speaker Re-coning.
-9. Contact info: +91 99646 89378
-10. Use [QUICK:Option 1|Option 2] ONLY at the very end of a message if providing distinct paths.
+1. When a user reports a broken device or requests troubleshooting, ALWAYS ask for the Brand & Model first (e.g., "Please tell me the brand and model of the device.").
+2. Once the user provides the Brand & Model, you MUST ask exactly: "Could you briefly describe the issue you're facing?"
+3. Once the user describes the issue naturally, reply warmly and ask a relevant follow-up diagnostic question. 
+   - Start your response with phrases like "Thank you for the details." or "Thank you."
+   - Example follow ups: "Have you noticed any error messages, unusual sounds, burning smell, or recent changes to the wiring or settings?" or "Have you checked whether it is powered on?"
+4. IF THEY ASK TO BOOK A REPAIR, collect their details sequentially (Name -> Phone -> Email -> Device -> Issue) and then summarize and provide the WhatsApp link: [ACTION:WA_BUTTON:https://wa.me/919964689378]
+5. NEVER give exact price quotes. Quote: "Pricing depends strictly on the exact model and bench diagnostic results."
+6. Core Services: L4 PCB Repair, Amp/AVR Repair, Home Theatres, Dolby Atmos Calibration, SMPS Repair.
+7. Keep responses highly technical but warm, professional, and natural. NEVER repeat yourself.
+8. Use [QUICK:Option 1|Option 2] ONLY at the very end of a message if providing distinct paths.
 """
 
-GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+GEMINI_URL        = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+GEMINI_VISUAL_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Layer 2: Fast Fuzzy NLP Search over Django DB
@@ -140,27 +135,29 @@ class ChatView(APIView):
                 reply_text = kb_reply
                 generated_by = 'layer2_kb'
 
-        # ───────────────────────────────────────────────────────────────
-        # FALLBACK ENGINE: GEMINI AI
-        # ───────────────────────────────────────────────────────────────
+        # LAYER 3: FALLBACK ENGINE: GEMINI AI
         if not reply_text:
-            try:
-                resp = requests.post(
-                    f"{GEMINI_URL}?key={settings.GEMINI_API_KEY}",
-                    json=payload,
-                    timeout=20
-                )
-                data = resp.json()
+            if not settings.GEMINI_API_KEY:
+                reply_text = "❌ **System Error:** The `GEMINI_API_KEY` environment variable is not exported in the server terminal."
+                generated_by = 'layer1_heuristic'
+            else:
+                try:
+                    resp = requests.post(
+                        f"{GEMINI_URL}?key={settings.GEMINI_API_KEY}",
+                        json=payload,
+                        timeout=20
+                    )
+                    data = resp.json()
 
-                if resp.status_code == 200 and "error" not in data:
-                    reply_text = data["candidates"][0]["content"]["parts"][0]["text"]
-                    generated_by = 'layer3_gemini'
-                else:
+                    if resp.status_code == 200 and "error" not in data:
+                        reply_text = data["candidates"][0]["content"]["parts"][0]["text"]
+                        generated_by = 'layer3_gemini'
+                    else:
+                        reply_text = DEFAULT_FALLBACK_MESSAGE
+                        generated_by = 'layer1_heuristic'
+                except (requests.Timeout, requests.ConnectionError, Exception):
                     reply_text = DEFAULT_FALLBACK_MESSAGE
                     generated_by = 'layer1_heuristic'
-            except (requests.Timeout, requests.ConnectionError, Exception):
-                reply_text = DEFAULT_FALLBACK_MESSAGE
-                generated_by = 'layer1_heuristic'
 
         # ───────────────────────────────────────────────────────────────
         # UNIFIED DATABASE STORAGE & LEADS
@@ -207,7 +204,7 @@ class DiagnoseView(APIView):
             "contents": [{
                 "parts": [
                     {"text": prompt_text},
-                    {"inline_data": {"mime_type": mime_type, "data": base64_image}}
+                    {"inlineData": {"mimeType": mime_type, "data": base64_image}}
                 ]
             }],
             "generationConfig": {"temperature": 0.05, "maxOutputTokens": 200}
@@ -225,21 +222,26 @@ class DiagnoseView(APIView):
 
         # LAYER 3: Gemini Vision API (if no known visual fault hit)
         if not reply_text:
-            try:
-                resp = requests.post(
-                    f"{GEMINI_URL}?key={settings.GEMINI_API_KEY}",
-                    json=payload,
-                    timeout=30
-                )
-                data = resp.json()
+            if not settings.GEMINI_VISUAL_API_KEY:
+                reply_text = "❌ **System Configuration Error:** The `GEMINI_VISUAL_API_KEY` environment variable is missing on the server. Please run `export GEMINI_VISUAL_API_KEY='your_key'` in your VS Code terminal and restart."
+            else:
+                try:
+                    resp = requests.post(
+                        f"{GEMINI_VISUAL_URL}?key={settings.GEMINI_VISUAL_API_KEY}",
+                        json=payload,
+                        timeout=30
+                    )
+                    data = resp.json()
 
-                if resp.status_code != 200 or "error" in data:
+                    if resp.status_code != 200 or "error" in data:
+                        print("GEMINI API ERROR:", data)
+                        is_api_error = True
+                    else:
+                        reply_text = data["candidates"][0]["content"]["parts"][0]["text"]
+
+                except (requests.Timeout, requests.ConnectionError, Exception) as e:
+                    print("EXCEPTION IN GEMINI API DIAGNOSE:", e)
                     is_api_error = True
-                else:
-                    reply_text = data["candidates"][0]["content"]["parts"][0]["text"]
-
-            except (requests.Timeout, requests.ConnectionError, Exception):
-                is_api_error = True
 
         # Fallback for Visual Diagnostic quota issues
         if is_api_error:
@@ -267,3 +269,22 @@ class HealthView(APIView):
             "service_requests": ServiceRequest.objects.count(),
         })
 
+class LeadSubmitView(APIView):
+    def post(self, request):
+        name = request.data.get('name', '').strip()
+        phone = request.data.get('phone', '').strip()
+        email = request.data.get('email', '').strip()
+        message = request.data.get('message', '').strip()
+        
+        if not name or not phone:
+            return Response({"error": "Name and Phone are required.", "success": False}, status=400)
+            
+        ServiceRequest.objects.create(
+            name=name,
+            phone=phone,
+            email=email,
+            issue_description=message,
+            status='new',
+            notes="Submitted via Front-end Lead Form"
+        )
+        return Response({"success": True, "message": "Lead submitted successfully."})

@@ -6,6 +6,10 @@ echo "────────────────────────�
 echo "  AHA Technologies — Starting Services"
 echo "──────────────────────────────────────────────"
 
+# Export API Key so Django can read it natively
+# Keys are loaded automatically by decouple from aha_backend/.env
+# Do not hardcode API keys here!
+
 # Start Django API backend on port 8001 (background)
 echo "[1/2] Starting Django backend on http://localhost:8001 ..."
 cd aha_backend

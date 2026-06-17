@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@700;800;900&display=swap');
+        
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { overflow-x: hidden; }
+  body { font-family: 'Inter', sans-serif; background-color: #111111; color: #cbd5e1; overflow-x: hidden; }
+  h1, h2, h3, h4, .brand-font { font-family: 'Montserrat', sans-serif; }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .chat-scroll::-webkit-scrollbar { width: 6px; }
+  .chat-scroll::-webkit-scrollbar-track { background: transparent; }
+  .chat-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+}
+
+/* Slider Styles */
+.slider-container { overflow: hidden; position: relative; background: #111111; padding: 40px 0; width: 100%; }
+.slider-container::before, .slider-container::after { content: ""; height: 100%; position: absolute; width: 60px; z-index: 2; pointer-events: none; }
+@media (min-width: 640px) {
+  .slider-container::before, .slider-container::after { width: 150px; }
+}
+.slider-container::before { left: 0; top: 0; background: linear-gradient(to right, #111111 0%, rgba(17, 17, 17, 0) 100%); }
+.slider-container::after { right: 0; top: 0; background: linear-gradient(to left, #111111 0%, rgba(17, 17, 17, 0) 100%); }
+.slider-track { display: flex; width: calc(250px * 24); animation: scroll 35s linear infinite; }
+.slide { height: 80px; width: 250px; display: flex; align-items: center; justify-content: center; padding: 0 35px; }
+.slide img { max-width: 100%; max-height: 50px; object-fit: contain; filter: brightness(0) invert(1) opacity(0.4); transition: all 0.4s ease; }
+.slide img:hover { filter: brightness(0) invert(1) opacity(1); transform: scale(1.1); }
+.slider-track:hover { animation-play-state: paused; }
+
+/* Gallery Item */
+.gallery-item { position: relative; overflow: hidden; border-radius: 0.75rem; background: #1a1a1a; border: 1px solid rgba(255, 255, 255, 0.05); }
+.gallery-item img { transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); }
+.gallery-item:hover img { transform: scale(1.08); }

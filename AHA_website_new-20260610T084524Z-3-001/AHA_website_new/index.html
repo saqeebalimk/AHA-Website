@@ -1086,21 +1086,29 @@
 
                             if (resultArea) resultArea.innerHTML = '<span style="color:#5EA19B">Analyzing PCB components...</span>';
 
-                            var response = await fetch("http://localhost:8001/api/diagnose/", {
+                            var promptText = "You are a Level-4 audio electronics repair technician. Analyze the image of this circuit board or component over briefly. Identify what the component is (e.g. Capacitor, HDMI IC, Transistor). List up to 2 bullet points of clearly visible faults (swollen caps, burnt traces, cold joints, corrosion). If no obvious faults are visible say so and recommend bench diagnosis. Be brief and professional.";
+                            var payload = {
+                                "contents": [{
+                                    "parts": [
+                                        {"text": promptText},
+                                        {"inlineData": {"mimeType": mimeType, "data": base64data}}
+                                    ]
+                                }],
+                                "generationConfig": {"temperature": 0.05, "maxOutputTokens": 200}
+                            };
+
+                            var response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=YOUR_GEMINI_API_KEY", {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    image: base64data,
-                                    mime_type: mimeType
-                                })
+                                body: JSON.stringify(payload)
                             });
 
                             var data = await response.json();
                             var resultText = "Analysis failed.";
-                            if (data && data.reply) {
-                                resultText = data.reply;
+                            if (data && data.candidates && data.candidates.length > 0) {
+                                resultText = data.candidates[0].content.parts[0].text;
                             } else if (data && data.error) {
-                                resultText = "Error: " + data.error;
+                                resultText = "Error: " + data.error.message;
                             }
 
                             if (resultArea) {
@@ -1181,14 +1189,18 @@
                 var issue = (document.getElementById(prefix + '-issue') || {}).value || '';
 
                 var formData = new FormData();
-                formData.append('access_key', 'YOUR_WEB3FORMS_ACCESS_KEY_HERE');
-                formData.append('subject', 'AHA Priority Service Request: ' + name);
-                formData.append('from_name', name);
-                formData.append('email', email);
-                formData.append('phone', phone);
-                formData.append('message', 'Equipment & Issue:\n' + issue);
+                var payload = {
+                    name: name,
+                    phone: phone,
+                    email: email,
+                    message: 'Equipment & Issue:\n' + issue
+                };
 
-                fetch('https://api.web3forms.com/submit', { method: 'POST', body: formData })
+                fetch('http://localhost:8001/api/lead/', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload) 
+                })
                     .then(function(r) {
                         var container = document.getElementById(prefix + '-container');
                         var successMsg = document.getElementById(prefix + '-success-msg');

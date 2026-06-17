@@ -30,7 +30,10 @@ ALLOWED_HOSTS = ['*']
 CORS_ALLOW_ALL_ORIGINS = True
 
 import os
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+# API keys — set these as environment variables or in aha_backend/.env (gitignored)
+GEMINI_API_KEY        = os.environ.get('GEMINI_API_KEY', '')
+# Separate key used exclusively for the Visual Diagnostic image analysis endpoint
+GEMINI_VISUAL_API_KEY = os.environ.get('GEMINI_VISUAL_API_KEY', '')
 
 
 # Application definition

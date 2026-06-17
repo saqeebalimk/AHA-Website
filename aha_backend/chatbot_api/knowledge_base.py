@@ -1,389 +1,640 @@
+"""
+AHA Technologies - Expert System NLP Engine v2
+A fully interruptible, domain-specific state machine with 40+ intents,
+session memory, and dynamic WhatsApp handoff generation.
+"""
 import re
+import urllib.parse
 
-# ─────────────────────────────────────────────────────────────────────────────
-# AHA Technologies — Offline NLP Intent Engine
-# This engine handles thousands of potential user phrasing combinations (equivalent to 1500+ strict Q&A pairs) 
-# by using semantic keyword matching and regex grouping.
-# ─────────────────────────────────────────────────────────────────────────────
 
-OUT_OF_SCOPE_MESSAGE = (
-    "Thank you for contacting AHA Technologies.\n\n"
-    "I can assist only with:\n"
-    "• Hi-Fi Audio Systems\n"
-    "• Amplifier & AV Receiver Repairs\n"
-    "• L4 PCB Component-Level Repairs\n"
-    "• Home Theatre & Dolby Atmos\n"
-    "• Audio Troubleshooting\n\n"
-    "Please ask a question related to AHA Technologies services."
-)
+# ──────────────────────────────────────────────────────────────────────────────
+# DOMAIN DEFINITIONS
+# Each domain defines: description, ordered fields, and prompts per field.
+# ──────────────────────────────────────────────────────────────────────────────
+DOMAINS = {
+    "HOME_THEATRE": {
+        "desc": "Home Theatre Installation",
+        "intro": "Great choice! Let's design your perfect home theatre. I just need a few quick details.",
+        "fields": ["roomSize", "seating", "budget", "brand", "desiredSetup"],
+        "prompts": {
+            "roomSize":       "What are the **dimensions of your room** (e.g., 12ft × 15ft)?",
+            "seating":        "What is the expected **seating capacity**?",
+            "budget":         "Do you have an **approximate budget** in mind?",
+            "brand":          "Do you have any **preferred brands** (e.g., Denon, Yamaha, Sony)?",
+            "desiredSetup":   "What **speaker layout** are you looking for — 5.1, 7.1, or Dolby Atmos (5.1.2 / 7.1.2)?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with *Home Theatre Installation*.\n\n"
+            "*Room Size:* {roomSize}\n"
+            "*Seating Capacity:* {seating}\n"
+            "*Budget:* {budget}\n"
+            "*Preferred Brands:* {brand}\n"
+            "*Desired Configuration:* {desiredSetup}\n\n"
+            "Please advise on the installation process.\n\nThank you."
+        ),
+    },
+    "DOLBY_ATMOS": {
+        "desc": "Dolby Atmos Setup / Upgrade",
+        "intro": "Happy to help with your Dolby Atmos upgrade! I'll need a few details.",
+        "fields": ["currentSetup", "desiredSetup", "brand", "model"],
+        "prompts": {
+            "currentSetup":   "What is your **current speaker setup** (e.g., 5.1)?",
+            "desiredSetup":   "What **Dolby Atmos layout** are you targeting (e.g., 5.1.2, 7.1.4)?",
+            "brand":          "What is the **brand** of your AV receiver?",
+            "model":          "What is the exact **model number** of the receiver?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with *Dolby Atmos Upgrade*.\n\n"
+            "*Current Setup:* {currentSetup}\n"
+            "*Desired Setup:* {desiredSetup}\n"
+            "*Receiver Brand:* {brand}\n"
+            "*Receiver Model:* {model}\n\n"
+            "Please advise on the upgrade path.\n\nThank you."
+        ),
+    },
+    "CALIBRATION": {
+        "desc": "Acoustic Calibration Service",
+        "intro": "We'd be happy to calibrate your system for the best possible sound. A few quick questions:",
+        "fields": ["brand", "model", "roomSize", "config"],
+        "prompts": {
+            "brand":    "What is the **brand** of your AV receiver?",
+            "model":    "What is the **model number**?",
+            "roomSize": "What are the **dimensions of your room**?",
+            "config":   "What is your **current speaker configuration** (e.g., 5.1, 7.1.2)?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require *Acoustic Calibration* for my home theatre.\n\n"
+            "*Receiver Brand:* {brand}\n"
+            "*Receiver Model:* {model}\n"
+            "*Room Size:* {roomSize}\n"
+            "*Speaker Config:* {config}\n\n"
+            "Please advise on the calibration service.\n\nThank you."
+        ),
+    },
+    "AMP_REPAIR": {
+        "desc": "Amplifier Repair",
+        "intro": "I'm sorry to hear about that. Let me help diagnose this.",
+        "fields": ["brand", "model", "issue", "symptom"],
+        "prompts": {
+            "brand":   "What is the **brand** of the amplifier (e.g., Denon, Marantz, Yamaha)?",
+            "model":   "What is the **model number**?",
+            "issue":   "Could you briefly **describe the issue** you're facing?",
+            "symptom": "Have you noticed any **overheating, unusual smells, or LED indicators**?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with *Amplifier Repair*.\n\n"
+            "*Brand:* {brand}\n"
+            "*Model:* {model}\n\n"
+            "*Issue:*\n{issue}\n\n"
+            "*Additional Observations:*\n{symptom}\n\n"
+            "Please advise regarding the repair process.\n\nThank you."
+        ),
+    },
+    "NO_POWER": {
+        "desc": "No Power Condition / SMPS Repair",
+        "intro": "A completely dead unit can be caused by SMPS, fuse, or PCB faults. Let me gather some details.",
+        "fields": ["brand", "model", "symptom"],
+        "prompts": {
+            "brand":   "What is the **brand** of the dead device?",
+            "model":   "What is the **model number**?",
+            "symptom": "Have you noticed any **LED lights, unusual sounds, or a burning smell** before it died?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with a *No Power Condition*.\n\n"
+            "*Brand:* {brand}\n"
+            "*Model:* {model}\n\n"
+            "*Symptoms Observed:*\n{symptom}\n\n"
+            "Please advise regarding the repair process.\n\nThank you."
+        ),
+    },
+    "PROTECT_MODE": {
+        "desc": "Protect Mode Fault",
+        "intro": "Protect mode usually indicates an output stage or speaker load issue. Let me help diagnose this.",
+        "fields": ["brand", "model", "symptom"],
+        "prompts": {
+            "brand":   "What is the **brand** of the amplifier?",
+            "model":   "Please provide the **exact model number**.",
+            "symptom": "Have you noticed any **overheating, burning smell, or recent speaker/wiring changes**?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with a *Protect Mode Fault*.\n\n"
+            "*Brand:* {brand}\n"
+            "*Model:* {model}\n\n"
+            "*Additional Observations:*\n{symptom}\n\n"
+            "Please advise regarding the repair process.\n\nThank you."
+        ),
+    },
+    "DISTORTED_SOUND": {
+        "desc": "Distorted Sound Issue",
+        "intro": "Audio distortion can point to output transistor or clipping issues. Let me collect some details.",
+        "fields": ["brand", "model", "channels"],
+        "prompts": {
+            "brand":    "What is the **brand** of your amplifier or receiver?",
+            "model":    "What is the **model number**?",
+            "channels": "Does the distortion occur on **all speakers** or only on **specific channels**?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with *Distorted Sound*.\n\n"
+            "*Brand:* {brand}\n"
+            "*Model:* {model}\n\n"
+            "*Channels Affected:*\n{channels}\n\n"
+            "Please advise regarding the repair process.\n\nThank you."
+        ),
+    },
+    "HDMI_REPAIR": {
+        "desc": "HDMI Board Repair",
+        "intro": "HDMI faults can involve the board, switch IC, or the HDCP handshake. Let me get some details.",
+        "fields": ["brand", "model", "issue"],
+        "prompts": {
+            "brand":  "Please tell me the **brand** of the AV receiver and the TV.",
+            "model":  "What is the **model number** of the receiver?",
+            "issue":  "Does the problem occur with **all HDMI inputs** or only **one source device**?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with an *HDMI Board Repair*.\n\n"
+            "*Brand:* {brand}\n"
+            "*Model:* {model}\n\n"
+            "*HDMI Fault Description:*\n{issue}\n\n"
+            "Please advise regarding the repair process.\n\nThank you."
+        ),
+    },
+    "DSP_REPAIR": {
+        "desc": "DSP Board Repair / Lost Channels",
+        "intro": "Lost channels are often caused by DSP IC or solder joint failures. Let me get some details.",
+        "fields": ["brand", "model", "channels"],
+        "prompts": {
+            "brand":    "Please tell me the **brand** of the receiver.",
+            "model":    "What is the **model number**?",
+            "channels": "Which **specific channels** are affected or completely lost?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with *DSP Board Repair / Lost Channels*.\n\n"
+            "*Brand:* {brand}\n"
+            "*Model:* {model}\n\n"
+            "*Channels Affected:*\n{channels}\n\n"
+            "Please advise regarding the repair process.\n\nThank you."
+        ),
+    },
+    "PCB_REPAIR": {
+        "desc": "PCB / Component-Level Repair",
+        "intro": "Our engineers specialise in L4 component-level PCB repair. Let me gather the device details.",
+        "fields": ["brand", "model", "issue"],
+        "prompts": {
+            "brand":  "What **brand** does this circuit board belong to?",
+            "model":  "What is the **device model number**?",
+            "issue":  "Could you briefly **describe the fault or symptom** observed?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with *PCB / Component-Level Repair*.\n\n"
+            "*Brand:* {brand}\n"
+            "*Model:* {model}\n\n"
+            "*Fault Description:*\n{issue}\n\n"
+            "Please advise regarding the repair process.\n\nThank you."
+        ),
+    },
+    "SUBWOOFER": {
+        "desc": "Subwoofer Problem",
+        "intro": "Subwoofer faults can be the amp section, wiring, or low-pass filter. Let me collect some details.",
+        "fields": ["brand", "model", "connections"],
+        "prompts": {
+            "brand":       "Please tell me the **make and model of both the receiver and the subwoofer**.",
+            "model":       "What is the **exact model number** of the subwoofer?",
+            "connections": "Is the subwoofer **powered on**, and have you checked the **cable connections**?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with a *Subwoofer Problem*.\n\n"
+            "*Brand / Receiver:* {brand}\n"
+            "*Subwoofer Model:* {model}\n\n"
+            "*Connection Details:*\n{connections}\n\n"
+            "Please advise regarding the repair process.\n\nThank you."
+        ),
+    },
+    "SURROUND": {
+        "desc": "Surround / Rear Channel Issue",
+        "intro": "Surround channel faults may be AVR settings, speaker wiring, or the DSP. Let me collect some details.",
+        "fields": ["brand", "model", "config", "symptom"],
+        "prompts": {
+            "brand":   "What is the **brand** of your AV receiver?",
+            "model":   "What is the **model number**?",
+            "config":  "What **speaker configuration** are you using (e.g., 5.1, 7.1)?",
+            "symptom": "Have you recently run **speaker calibration** or changed any **wiring or settings**?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with *Surround / Rear Channel Issues*.\n\n"
+            "*Brand:* {brand}\n"
+            "*Model:* {model}\n"
+            "*Configuration:* {config}\n\n"
+            "*Details:*\n{symptom}\n\n"
+            "Please advise regarding the repair process.\n\nThank you."
+        ),
+    },
+    "COMMERCIAL_AUDIO": {
+        "desc": "Commercial Audio Systems",
+        "intro": "We handle large-scale commercial audio installations. Let me get the project details.",
+        "fields": ["commercialType", "zones", "issue"],
+        "prompts": {
+            "commercialType": "Is this for a **hotel, restaurant, retail store, or other venue**?",
+            "zones":          "How many **zones or areas** need to be covered?",
+            "issue":          "Could you describe the **issue or requirement** in more detail?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with *Commercial Audio Systems*.\n\n"
+            "*Venue Type:* {commercialType}\n"
+            "*Number of Zones:* {zones}\n\n"
+            "*Requirement / Issue:*\n{issue}\n\n"
+            "Please advise on how you can help.\n\nThank you."
+        ),
+    },
+    "CONFERENCE_ROOM": {
+        "desc": "Conference Room Audio Systems",
+        "intro": "We design UC-grade conference room audio systems. Let me get the details.",
+        "fields": ["issue", "equipment"],
+        "prompts": {
+            "issue":     "Are you experiencing **microphone issues, speaker problems, or connectivity interruptions**?",
+            "equipment": "Please provide the **equipment details** if available (brand, model).",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with *Conference Room Audio Systems*.\n\n"
+            "*Symptom / Issue:*\n{issue}\n\n"
+            "*Equipment:*\n{equipment}\n\n"
+            "Please advise on the service or upgrade.\n\nThank you."
+        ),
+    },
+    "DISTRIBUTED_AUDIO": {
+        "desc": "Distributed / Multi-Room Audio",
+        "intro": "We specialise in multi-zone audio systems using AoIP and 70V/100V architectures. Let me get the details.",
+        "fields": ["zones", "issue"],
+        "prompts": {
+            "zones": "How many **zones or rooms** are part of the system?",
+            "issue": "What **specific issues** are you experiencing, or is this a new installation?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with *Distributed / Multi-Room Audio*.\n\n"
+            "*Number of Zones:* {zones}\n\n"
+            "*Requirement / Issue:*\n{issue}\n\n"
+            "Please advise on the installation or repair.\n\nThank you."
+        ),
+    },
+    "PREVENTIVE_MAINTENANCE": {
+        "desc": "Preventive Maintenance",
+        "intro": "Regular maintenance significantly extends equipment life. Let me collect the unit details.",
+        "fields": ["brand", "model", "maintenanceType"],
+        "prompts": {
+            "brand":           "What is the **brand** of the equipment?",
+            "model":           "What is the **model number**?",
+            "maintenanceType": "Are you looking for **deep cleaning, fan replacement, impedance sweep**, or a **general inspection**?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I would like to schedule *Preventive Maintenance*.\n\n"
+            "*Brand:* {brand}\n"
+            "*Model:* {model}\n"
+            "*Service Required:* {maintenanceType}\n\n"
+            "Please advise on scheduling.\n\nThank you."
+        ),
+    },
+    "HIFI_AUDIO": {
+        "desc": "Hi-Fi Audio Consulting",
+        "intro": "Hi-Fi audio is all about accuracy and fidelity. Let me understand your requirements.",
+        "fields": ["brand", "budget", "roomSize"],
+        "prompts": {
+            "brand":    "Do you have any **preferred Hi-Fi brands** (e.g., Naim, Arcam, Cambridge Audio)?",
+            "budget":   "What is your **approximate budget** for the system?",
+            "roomSize": "What are the **dimensions of your listening room**?",
+        },
+        "wa_template": (
+            "Hi AHA Technologies,\n\n"
+            "I require assistance with *Hi-Fi Audio System Consulting*.\n\n"
+            "*Preferred Brands:* {brand}\n"
+            "*Budget:* {budget}\n"
+            "*Room Size:* {roomSize}\n\n"
+            "Please advise on the ideal Hi-Fi setup.\n\nThank you."
+        ),
+    },
+    "BOOK_SERVICE": {
+        "desc": "Service Booking",
+        "intro": (
+            "Certainly! Which service would you like to book?\n\n"
+            "[QUICK:Home Theatre Installation|Dolby Atmos Upgrade|Amplifier Repair|PCB Repair|Acoustic Calibration|Commercial Audio|Preventive Maintenance]"
+        ),
+        "fields": [],   # No fields; immediately presents menu
+        "prompts": {},
+        "wa_template": "",
+    },
+}
 
-DEFAULT_FALLBACK_MESSAGE = (
-    "Thank you for reaching out to AHA Technologies. Our AI system is currently experiencing high load, "
-    "but our engineers are ready to assist you! Please call us directly at **+91 99646 89378** or click "
-    "the link below to chat with an expert on WhatsApp.\n\n"
-    "[ACTION:WA_BUTTON:https://wa.me/919964689378?text=Hi+AHA]"
-)
+# ──────────────────────────────────────────────────────────────────────────────
+# INTENT PATTERNS — Ordered from most-specific to least-specific
+# ──────────────────────────────────────────────────────────────────────────────
+INTENT_PATTERNS = [
+    # --- Exact button metadata intents (highest priority) ---
+    (r'^HOME_THEATRE$',           'HOME_THEATRE'),
+    (r'^DOLBY_ATMOS$',            'DOLBY_ATMOS'),
+    (r'^PCB_REPAIR$',             'PCB_REPAIR'),
+    (r'^AMP_REPAIR$',             'AMP_REPAIR'),
+    (r'^CALIBRATION$',            'CALIBRATION'),
+    (r'^COMMERCIAL_AUDIO$',       'COMMERCIAL_AUDIO'),
+    (r'^PREVENTIVE_MAINTENANCE$', 'PREVENTIVE_MAINTENANCE'),
+    (r'^BOOK_SERVICE$',           'BOOK_SERVICE'),
 
-INTENTS = [
-    {
-        "intent": "pricing_general",
-        "keywords": [r'\bprice\b', r'\bcost\b', r'\bcharge\b', r'\bfee\b', r'\bhow much\b', r'\bquote\b', r'\bestimate\b'],
-        "response": "Pricing depends entirely on the equipment model, the severity of the fault, and the cost of replacement parts. To get a precise estimate, please share your equipment details and symptoms.\n\n[QUICK:Book Service|Contact Us]"
-    },
-    {
-        "intent": "booking_appointment",
-        "keywords": [r'\bbook\b', r'\bappointment\b', r'\bschedule\b', r'\bvisit\b', r'\btechnician\b', r'\binspect\b', r'\bneed repair\b'],
-        "response": "I can help schedule a service or bench diagnostic for you. To begin, what is the Brand and Model of the equipment having an issue?"
-    },
-    {
-        "intent": "greeting",
-        "keywords": [r'^hi\b', r'^hello\b', r'^hey\b', r'^start\b', r'^good morning\b', r'^good afternoon\b', r'^greetings\b'],
-        "response": "Welcome to AHA Technologies! I am the AHA Tech Advisor. We specialize in high-end audio and PCB repairs. How can I help you today?"
-    },
-    {
-        "intent": "location_address",
-        "keywords": [r'\blocation\b', r'\bwhere\b', r'\baddress\b', r'\bcity\b', r'\bsituated\b', r'\bshop\b', r'\bstore\b', r'\boffice\b'],
-        "response": "We are located centrally in Bangalore, India, and have been serving clients globally with expert audio repair and installation services since 1991. Would you like to drop off a piece of equipment for repair?"
-    },
-    {
-        "intent": "contact_info",
-        "keywords": [r'\bcontact\b', r'\bcall\b', r'\bnumber\b', r'\bphone\b', r'\bwhatsapp\b', r'\breach\b'],
-        "response": "You can reach the AHA Tech Lab directly at **+91 99646 89378**. We are available to answer your calls and WhatsApp messages during business hours.\n\n[ACTION:WA_BUTTON:https://wa.me/919964689378?text=Hi+AHA+Technologies]"
-    },
-    {
-        "intent": "amp_receiver_repair",
-        "keywords": [r'\bamp\b', r'\bamplifier\b', r'\breceiver\b', r'\bav\b', r'\bavr\b', r'\bno audio\b', r'\bno sound\b', r'\bprotect mode\b', r'\bshutting down\b'],
-        "response": "We are experts in Amplifier and AV Receiver repairs, including issues like 'Protect Mode', no audio output, channel imbalance, and DSP failure. What brand (e.g., Denon, Marantz, Yamaha) is your receiver?"
-    },
-    {
-        "intent": "pcb_l4_repair",
-        "keywords": [r'\bpcb\b', r'\bboard\b', r'\bcomponent\b', r'\bsolder\b', r'\bchip\b', r'\btrace\b', r'\bcapacitor\b', r'\bic\b', r'\bl4\b', r'\bmotherboard\b'],
-        "response": "We offer advanced L4 Component-Level PCB repair. Instead of replacing entire expensive boards, we trace faults down to the microchip, capacitor, or resistor level to save you money. What device is the board from?"
-    },
-    {
-        "intent": "home_theatre_dolby",
-        "keywords": [r'\bhome theatre\b', r'\bhome theater\b', r'\bdolby\b', r'\batmos\b', r'\bsurround\b', r'\bsetup\b', r'\binstallation\b', r'\bacoustics\b'],
-        "response": "We design and install world-class Home Theatre systems, including Dolby Atmos setups with precision acoustic calibration. Are you looking for a new installation or troubleshooting an existing setup?"
-    },
-    {
-        "intent": "speaker_repair",
-        "keywords": [r'\bspeaker\b', r'\bcrossover\b', r'\btweeter\b', r'\bwoofer\b', r'\bsubwoofer\b', r'\bbass\b', r'\bRattling\b', r'\bcoil\b'],
-        "response": "We handle high-end speaker repairs, from rebuilding complex crossover networks to addressing blown tweeters and subwoofer amplifier failures. What brand and model are your speakers?"
-    },
-    {
-        "intent": "vintage_audio",
-        "keywords": [r'\bvintage\b', r'\bclassic\b', r'\bold\b', r'\bturntable\b', r'\brecord player\b', r'\btape deck\b', r'\banalog\b'],
-        "response": "With decades of experience, we specialize in restoring vintage and analog Hi-Fi audio equipment to its original glory. However, parts availability can sometimes take time. What classic unit do you need serviced?"
-    },
-    {
-        "intent": "turnaround_time",
-        "keywords": [r'\btime\b', r'\bhow long\b', r'\bduration\b', r'\bdays\b', r'\bfast\b', r'\bquick\b'],
-        "response": "A standard bench diagnostic takes 24 to 48 hours. The total repair time depends heavily on the complexity of the fault and whether specialized components need to be imported. We prioritize precision over speed."
-    },
-    {
-        "intent": "warranty_guarantee",
-        "keywords": [r'\bwarranty\b', r'\bguarantee\b', r'\brefund\b', r'\bpolicy\b'],
-        "response": "We stand by the quality of our component-level repairs. We provide a limited warranty on the specific parts we replace and the labor performed. Feasibility of repair depends entirely on the initial diagnostic."
-    },
-    {
-        "intent": "out_of_scope_rejection",
-        "keywords": [r'\bweather\b', r'\bpolitics\b', r'\bsports\b', r'\bjoke\b', r'\bcode\b', r'\bprogramming\b', r'\bpoem\b', r'\bstory\b', r'\breligion\b', r'\bcar\b', r'\bmobile\b', r'\bphone repair\b'],
-        "response": OUT_OF_SCOPE_MESSAGE
-    }
+    # --- Natural language: Booking ---
+    (r'book (a )?(service|repair|appointment|diagnostic)',  'BOOK_SERVICE'),
+    (r'schedule (a )?(service|repair|appointment)',         'BOOK_SERVICE'),
+    (r'want to book',                                       'BOOK_SERVICE'),
+
+    # --- Natural language: Faults & Repair ---
+    (r'protect(ion)?( mode)?|safety mode|red light blinking', 'PROTECT_MODE'),
+    (r'shut(s)? (off|down)|turn(s|ing)? (off|itself off)', 'PROTECT_MODE'),
+    (r'no power|won\'t (turn|power) on|completely dead|not turning on|not powering on', 'NO_POWER'),
+    (r'smps|power supply (issue|repair)',               'NO_POWER'),
+    (r'distort(ed|ion)?|crackl(es|ing|e)|fuzzy',        'DISTORTED_SOUND'),
+    (r'hdmi|no (picture|video)|arc|earc',               'HDMI_REPAIR'),
+    (r'dsp|lost (audio )?channels?|channels? (missing|gone|lost)|center (speaker|channel)', 'DSP_REPAIR'),
+    (r'subwoofer|sub (not|stopped) working|sub (hums|no bass)', 'SUBWOOFER'),
+    (r'rear|surround|left channel|right channel',       'DSP_REPAIR'),
+    (r'burning smell|burnt|smoke|overheat(ing)?',       'AMP_REPAIR'),
+    (r'pcb|circuit board|component.level',              'PCB_REPAIR'),
+    (r'amplifier (repair|fix|broken|dead|issue)',       'AMP_REPAIR'),
+    (r'(amp|amplifier|receiver|avr) (not working|repair)', 'AMP_REPAIR'),
+
+    # --- Natural language: Installation & Audio ---
+    (r'room is|seating for|home theat(re|er)',          'HOME_THEATRE'),
+    (r'install(ation)?',                                'HOME_THEATRE'),
+    (r'dolby atmos',                                    'DOLBY_ATMOS'),
+    (r'calibrat|audyssey|dirac|ypao',                   'CALIBRATION'),
+    (r'balanced|calibration needed',                    'CALIBRATION'),
+    (r'hi.?fi|high fidelity|stereo setup',              'HIFI_AUDIO'),
+
+    # --- Natural language: Commercial ---
+    (r'conference (room|audio)',                        'CONFERENCE_ROOM'),
+    (r'commercial (audio|project)',                     'COMMERCIAL_AUDIO'),
+    (r'distributed audio|multi.room|hotel audio|restaurant audio', 'DISTRIBUTED_AUDIO'),
+
+    # --- Natural language: Maintenance ---
+    (r'preventive maintenance|deep clean|impedance sweep', 'PREVENTIVE_MAINTENANCE'),
 ]
 
-def process_booking_flow(session, text):
-    step = session.intent_step
-    data = session.state_data
+# ──────────────────────────────────────────────────────────────────────────────
+# STATIC FAQs — instant answers without a flow
+# ──────────────────────────────────────────────────────────────────────────────
+FAQS = [
+    (r'\b(phone|contact|call|reach|whatsapp)\b',   "You can reach AHA Technologies at **+91 99646 89378** or on WhatsApp:\n\n[ACTION:WA_BUTTON:https://wa.me/919964689378]"),
+    (r'\b(location|address|where are you)\b',      "AHA Technologies is an engineering lab based in **Bangalore, India**. Please contact us at +91 99646 89378 to schedule a drop-off."),
+    (r'\b(business hours|working hours|timing)\b', "We operate **Monday to Saturday, 10 AM – 7 PM IST**. You can also reach us 24/7 on WhatsApp."),
+    (r'\b(how long|turnaround|days|time)\b',       "Standard bench diagnostics take **24–48 hours**. Full repairs depend on component availability, typically **3 to 7 working days**."),
+    (r'\b(price|pricing|cost|charges|quote)\b',    "Pricing depends on the **exact model and bench diagnostic results**. We provide a detailed estimate after the initial inspection. There are no hidden charges."),
+    (r'\b(warranty|guarantee|refund)\b',           "We offer a **30-day component warranty** on all replaced parts. Labour charges are non-refundable due to the technical nature of L4 repair."),
+    (r'\b(what brands? do you|do you repair (all )?brands)\b',   "We work with all major AV brands including **Denon, Marantz, Yamaha, Sony, Onkyo, Pioneer, Polk Audio, Klipsch, KEF,** and more."),
+    (r'what (is|are) (hi.?fi|high fidelity)',  "**Hi-Fi (High Fidelity)** audio aims to reproduce sound as accurately as possible — flat frequency response, minimal distortion, wide dynamic range. It's the opposite of over-processed consumer audio."),
+    (r'what is dolby atmos',                 "**Dolby Atmos** is an object-based audio format that adds a height dimension to surround sound. Instead of fixed channels, sounds are placed in a 3D space — giving you audio that moves around and *above* you."),
+    (r'what is 5\.1',                        "A **5.1 system** uses 5 speakers (Front L/R, Centre, Rear L/R) + 1 subwoofer. It's the standard for a cinematic home theatre experience."),
+    (r'what is 7\.1',                        "A **7.1 system** adds two extra surround speakers to a 5.1 setup, for a more immersive surround envelope — ideal for larger rooms."),
+    (r'what is (5\.1\.2|7\.1\.2|atmos layout)', "In Dolby Atmos notation, the third number denotes **height (overhead) speakers**. So **5.1.2** = 5 surround + 1 sub + 2 height speakers. **7.1.4** is a more immersive premium layout."),
+    (r'\b(pcb repair|l4)\b',                       "Our **L4 (Level 4) PCB repair** involves diagnosing and replacing individual failed components on the circuit board — not swapping entire modules. We use BGA rework stations, microscopes, and precision soldering tools."),
+]
+
+DEFAULT_FALLBACK = (
+    "I'd be happy to help! Could you clarify what you're looking for? "
+    "For example, are you interested in **Home Theatre Installation**, **Amplifier Repair**, **Dolby Atmos**, or something else?\n\n"
+    "[QUICK:Home Theatre|Dolby Atmos|Amplifier Repair|PCB Repair|Book a Service]"
+)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# INTENT DETECTION
+# ──────────────────────────────────────────────────────────────────────────────
+def detect_intent(text: str) -> str | None:
+    """Returns the matched intent key or None."""
+    t = text.strip()
+    for pattern, intent in INTENT_PATTERNS:
+        if re.search(pattern, t, re.IGNORECASE):
+            return intent
+    return None
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# ENTITY EXTRACTION & PROBABILITY ENGINE
+# ──────────────────────────────────────────────────────────────────────────────
+BRANDS = {
+    "denon", "marantz", "yamaha", "onkyo", "pioneer", "sony", "cambridge audio",
+    "anthem", "nad", "arcam", "rotel", "jbl", "klipsch", "kef", "polk", "svs", 
+    "rel", "b&w", "monitor audio", "bose", "sonos"
+}
+
+MODEL_PATTERNS = [
+    r'\bAVR-[XSA]?[0-9]{3,4}H?\b',
+    r'\bRX-[VA][0-9]+\b',
+    r'\bSR[0-9]{4}\b',
+    r'\bTX-NR[0-9]{4}\b',
+    r'\b[A-Z]{2,4}-[A-Z0-9]{3,7}\b'  # Generic fallback requires hyphen
+]
+
+FAULTS_PROBABILITY = {
+    "PROTECT_MODE": "Protect mode is commonly caused by **Output Stage Faults (45%)**, **Shorted Speakers (30%)**, or **Power Supply Issues (15%)**.",
+    "NO_POWER": "A completely dead unit is usually caused by **SMPS/Standby Board Failures (60%)**, **Blown Main Fuses (20%)**, or **MCU Faults (10%)**.",
+    "DISTORTED_SOUND": "Audio distortion often points to **Output Transistor Bias Issues (40%)**, **Clipping from underpowering (30%)**, or **Pre-amp IC Failure (20%)**.",
+    "HDMI_REPAIR": "HDMI failures are typically associated with **Surge/Lightning damage to the HDMI Board (50%)**, **Switch IC Failure (30%)**, or **HDCP Handshake Issues (20%)**.",
+    "DSP_REPAIR": "Lost channels are frequently traced back to **DSP IC BGA Solder Fatigue (60%)** or **DAC Failures (30%)**.",
+}
+
+def extract_entities(text: str, current_data: dict) -> dict:
+    """Proactively extracts Brands and Models so the user doesn't have to repeat themselves."""
+    text_lower = text.lower()
     
-    if step == 1:
-        data['name'] = text
-        session.intent_step = 2
-        session.state_data = data
+    # Extract Brand - Allow overwrite if explicitly mentioned again
+    for b in BRANDS:
+        if b in text_lower:
+            current_data["brand"] = b.title()
+            break
+                
+    # Extract Model - Allow overwrite
+    for pattern in MODEL_PATTERNS:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            current_data["model"] = match.group(0).upper()
+            break
+                
+    return current_data
+
+# ──────────────────────────────────────────────────────────────────────────────
+# WHATSAPP TEMPLATE BUILDER
+# ──────────────────────────────────────────────────────────────────────────────
+def build_wa_button(domain_key: str, data: dict) -> str:
+    domain = DOMAINS[domain_key]
+    template = domain.get("wa_template", "")
+    if not template:
+        return ""
+    # Fill in collected fields; any missing become 'N/A'
+    for field in domain.get("fields", []):
+        template = template.replace("{" + field + "}", data.get(field, "N/A"))
+    wa_link = "https://wa.me/919964689378?text=" + urllib.parse.quote(template)
+    return f"[ACTION:WA_BUTTON:{wa_link}]"
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# BOOK SERVICE MENU → DOMAIN REDIRECT
+# ──────────────────────────────────────────────────────────────────────────────
+BOOK_MENU_MAP = {
+    "home theatre installation": "HOME_THEATRE",
+    "dolby atmos upgrade":       "DOLBY_ATMOS",
+    "amplifier repair":          "AMP_REPAIR",
+    "pcb repair":                "PCB_REPAIR",
+    "acoustic calibration":      "CALIBRATION",
+    "commercial audio":          "COMMERCIAL_AUDIO",
+    "preventive maintenance":    "PREVENTIVE_MAINTENANCE",
+}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# MAIN ENTRY POINT
+# ──────────────────────────────────────────────────────────────────────────────
+def get_heuristic_reply(session, user_text: str) -> str | None:
+    """
+    Returns a reply string or None (to fall through to Layer 2/3).
+    Implements a fully interruptible state machine.
+    """
+    text = user_text.strip()
+    text_lower = text.lower()
+    data: dict = session.state_data or {}
+
+    # ── 0. STATIC FAQ — highest priority, instant answer, no flow ──
+    for pattern, answer in FAQS:
+        if re.search(pattern, text_lower, re.IGNORECASE):
+            # Only answer FAQ if user is NOT mid-flow asking a relevant flow question
+            # (avoids stomping on answers like "Denon" matching branded keyword)
+            if not session.current_intent or not data.get('current_focus'):
+                return answer
+
+    # ── 1. DETECT if this message carries a NEW INTENT ──
+    new_intent = detect_intent(text)
+
+    # ── 1.5. ALWAYS EXTRACT ENTITIES PROACTIVELY ──
+    data = extract_entities(text, data)
+    session.state_data = data
+    session.save()
+
+    # ── 2. INTERRUPTION CHECK ──
+    # If we're mid-flow and a clear new intent arrives, reset and redirect.
+    if session.current_intent and new_intent and new_intent != session.current_intent:
+        session.current_intent = new_intent
+        # Preserve extracted entities during topic switch
+        session.state_data = {"intent": new_intent, "brand": data.get("brand", ""), "model": data.get("model", "")}
         session.save()
-        return f"Thank you, {text}. Could you provide your phone number?"
-    elif step == 2:
-        data['phone'] = text
-        session.intent_step = 3
-        session.state_data = data
-        session.save()
-        return "Thanks. May I have your email address?"
-    elif step == 3:
-        data['email'] = text
-        session.intent_step = 4
-        session.state_data = data
-        session.save()
-        return "Please tell me the brand and model of the device."
-    elif step == 4:
-        data['device'] = text
-        session.intent_step = 5
-        session.state_data = data
-        session.save()
-        return "Could you briefly describe the issue you're facing?"
-    elif step == 5:
-        data['issue'] = text
-        session.current_intent = None
-        session.intent_step = 0
-        session.state_data = {}
-        session.save()
-        
-        # In a real app we'd save to ServiceRequest here, but views.py handles unified storage later
-        return (
-            "Thank you. Your service request details have been collected successfully.\n\n"
-            f"**Summary:**\n* Name: {data.get('name')}\n* Phone: {data.get('phone')}\n"
-            f"* Email: {data.get('email')}\n* Device: {data.get('device')}\n* Issue: {text}\n\n"
-            "You can continue the repair process through WhatsApp:\n\n"
-            "[ACTION:WA_BUTTON:https://wa.me/919964689378]"
-        )
-    
-    return DEFAULT_FALLBACK_MESSAGE
-
-def process_booking_flow(session, text):
-    step = session.intent_step
-    data = session.state_data
-
-    if step == 1:
-        data['name'] = text
-        session.intent_step = 2
-        session.state_data = data
-        session.save()
-        return f"Thank you, **{text}**. Could you provide your phone number?"
-    elif step == 2:
-        data['phone'] = text
-        session.intent_step = 3
-        session.state_data = data
-        session.save()
-        return "Thanks. May I have your email address?"
-    elif step == 3:
-        data['email'] = text
-        session.intent_step = 4
-        session.state_data = data
-        session.save()
-        return "Please tell me the brand and model of the device."
-    elif step == 4:
-        data['device'] = text
-        session.intent_step = 5
-        session.state_data = data
-        session.save()
-        return "Could you briefly describe the issue you're facing?"
-    elif step == 5:
-        data['issue'] = text
-        session.current_intent = None
-        session.intent_step = 0
-        session.state_data = {}
-        session.save()
-        return (
-            "Thank you. Your service request details have been collected successfully.\n\n"
-            f"**Summary:**\n* Name: {data.get('name')}\n* Phone: {data.get('phone')}\n"
-            f"* Email: {data.get('email')}\n* Device: {data.get('device')}\n* Issue: {text}\n\n"
-            "You can continue the repair process through WhatsApp:\n\n"
-            "[ACTION:WA_BUTTON:https://wa.me/919964689378]"
-        )
-    return DEFAULT_FALLBACK_MESSAGE
-
-
-def process_diagnosis_flow(session, text):
-    step = session.intent_step
-    data = session.state_data
-
-    if step == 1:
-        data['model'] = text
-        session.intent_step = 2
-        session.state_data = data
-        session.save()
-        return "Thank you. Does the unit show any LED indication, or is it completely dead?"
-    elif step == 2:
-        data['symptom'] = text
-        session.current_intent = None
-        session.intent_step = 0
-        session.state_data = data
-        session.save()
-        if "no" in text.lower() or "dead" in text.lower():
-            return "Understood. A completely dead amplifier can be caused by a blown fuse, power supply issues, faulty MOSFETs, or damaged components on the PCB. Have you noticed any burning smell or visible damage inside the unit?"
-        else:
-            return "Got it. Based on the symptoms described, it may be stuck in **protect mode** — commonly caused by shorted output transistors or DC offset. I recommend a full bench diagnostic. Would you like to book a service?"
-    return DEFAULT_FALLBACK_MESSAGE
-
-
-def process_ht_install_flow(session, text):
-    """Multi-turn flow: New Home Theatre Installation."""
-    step = session.intent_step
-    data = session.state_data
-
-    if step == 1:
-        data['room'] = text
-        session.intent_step = 2
-        session.state_data = data
-        session.save()
-        return "Thank you. How many seats are you planning, and are you interested in a **5.1.2**, **7.1.2**, or higher Dolby Atmos configuration?"
-    elif step == 2:
-        data['config'] = text
-        session.intent_step = 3
-        session.state_data = data
-        session.save()
-        return "Excellent. Do you have any preferred brands such as **Denon, Marantz, Yamaha, Klipsch, Polk Audio, or KEF**? Also, what is your approximate budget range?"
-    elif step == 3:
-        data['brand_budget'] = text
-        session.current_intent = None
-        session.intent_step = 0
-        session.state_data = {}
-        session.save()
-        return (
-            f"Perfect. Based on your requirements — **{data.get('room')}**, **{data.get('config')}** — "
-            "we can design a complete acoustic layout, select appropriate equipment, and handle full installation and calibration. "
-            "Shall I schedule a site visit so our engineer can take exact room measurements?\n\n"
-            "[QUICK:Yes, schedule a visit|Send me details on WhatsApp]"
-        )
-    return DEFAULT_FALLBACK_MESSAGE
-
-
-def process_ht_troubleshoot_flow(session, text):
-    """Multi-turn flow: Existing Home Theatre Troubleshooting."""
-    step = session.intent_step
-    data = session.state_data
-
-    if step == 1:
-        data['avr_model'] = text
-        session.intent_step = 2
-        session.state_data = data
-        session.save()
-        return "Thank you. Could you briefly describe the issue you're experiencing?"
-    elif step == 2:
-        data['issue'] = text
-        session.intent_step = 3
-        session.state_data = data
-        session.save()
-        text_low = text.lower()
-        if "subwoofer" in text_low or "sub" in text_low:
-            return "Understood. Is the subwoofer **powered on**, and have there been any recent changes to the wiring or settings?"
-        elif "surround" in text_low or "speaker" in text_low:
-            return "Understood. Are any of the surround channels showing in the AVR's speaker test menu, or are they completely silent?"
-        elif "calibrat" in text_low or "balance" in text_low or "sound" in text_low:
-            return "Got it. When was the last time Audyssey or YPAO room calibration was run? Also, have any speakers been physically moved recently?"
-        else:
-            return "Got it. Could you describe if the issue is intermittent or constant, and whether it occurs on all audio sources (streaming, Blu-ray, TV) or just specific ones?"
-    elif step == 3:
-        data['followup'] = text
-        session.intent_step = 4
-        session.state_data = data
-        session.save()
-        return "Thank you. Please let me know the **make and model of the subwoofer/speakers** involved, and if possible, upload pictures of the rear panel connections. This will help us guide you through further diagnostics."
-    elif step == 4:
-        data['sub_model'] = text
-        session.current_intent = None
-        session.intent_step = 0
-        session.state_data = {}
-        session.save()
-        avr = data.get('avr_model', 'your AVR')
-        issue = data.get('issue', 'the reported issue')
-        return (
-            f"Thank you for the details. Based on the symptoms with your **{avr}** — {issue} — "
-            "our recommendation is a bench diagnostic at our Bangalore lab. We can also arrange remote guidance if you'd prefer. "
-            "Would you like to book a service appointment?\n\n"
-            "[QUICK:Book a Service|Contact on WhatsApp]"
-        )
-    return DEFAULT_FALLBACK_MESSAGE
-
-
-def get_heuristic_reply(session, user_text):
-    text = user_text.lower()
-
-    # ── STATE MACHINE: Route to active flows ──
-    if session.current_intent == 'booking':
-        return process_booking_flow(session, user_text)
-    elif session.current_intent == 'amp_repair_flow':
-        return process_diagnosis_flow(session, user_text)
-    elif session.current_intent == 'ht_install':
-        return process_ht_install_flow(session, user_text)
-    elif session.current_intent == 'ht_troubleshoot':
-        return process_ht_troubleshoot_flow(session, user_text)
-
-    # ── HOME THEATRE ENTRY POINT (branches based on intent) ──
-    ht_keywords = ["home theatre", "home theater", "dolby atmos", "surround", "5.1", "7.1", "atmos", "home cinema"]
-    is_ht = any(k in text for k in ht_keywords)
-
-    if is_ht:
-        new_keywords = ["new", "install", "setup", "design", "want a", "looking for", "media room", "living room", "upgrade"]
-        trouble_keywords = ["problem", "issue", "not working", "broken", "calibrat", "balance", "subwoofer", "speaker", "existing", "already have", "trouble"]
-
-        if any(k in text for k in trouble_keywords):
-            session.current_intent = 'ht_troubleshoot'
-            session.intent_step = 1
-            session.save()
-            return "I'd be happy to help. Could you tell me the **brand and model of your AVR or amplifier**, if available?"
-
-        if any(k in text for k in new_keywords):
-            session.current_intent = 'ht_install'
-            session.intent_step = 1
-            session.save()
-            return "Great! Could you tell me the **dimensions of the room** and whether it's a dedicated theatre room or a living room?"
-
-        # Neutral — ask clarifying question
-        session.current_intent = 'ht_clarify'
-        session.save()
-        return ("We design and install world-class Home Theatre systems, including Dolby Atmos setups with precision acoustic calibration. "
-                "Are you looking for a **new installation** or **troubleshooting an existing setup**?\n\n"
-                "[QUICK:New Installation|Troubleshoot Existing]")
-
-    # Handle clarify step responses
-    if session.current_intent == 'ht_clarify':
-        if any(k in text for k in ["new", "install", "setup"]):
-            session.current_intent = 'ht_install'
-            session.intent_step = 1
-            session.save()
-            return "Great! Could you tell me the **dimensions of the room** and whether it's a dedicated theatre room or a living room?"
-        elif any(k in text for k in ["existing", "problem", "trouble", "issue", "repair"]):
-            session.current_intent = 'ht_troubleshoot'
-            session.intent_step = 1
-            session.save()
-            return "I'd be happy to help. Could you tell me the **brand and model of your AVR or amplifier**, if available?"
-
-    # ── BOOKING FLOW TRIGGER ──
-    if any(k in text for k in ["book a repair", "book a service", "schedule a service", "want to book"]):
-        session.current_intent = 'booking'
-        session.intent_step = 1
-        session.save()
-        return "Certainly. May I have your name, please?"
-
-    # ── AMP/POWER FAULT FLOW TRIGGER ──
-    if any(k in text for k in ["not turning on", "not powering on", "completely dead", "no power", "won't turn on"]):
-        session.current_intent = 'amp_repair_flow'
-        session.intent_step = 1
-        session.save()
-        return "I'd be happy to help. Could you tell me the **model number** of the amplifier, if available? Also, any LED indication or burning smell?"
-
-    # ── PCB FLOW TRIGGER ──
-    if "pcb" in text or ("board" in text and "repair" in text):
-        session.current_intent = 'pcb_flow'
-        session.save()
-        return "Certainly. Which device does the PCB belong to? For example, is it from a home theatre system, amplifier, mixer, powered speaker, or another piece of equipment?"
-
-    if session.current_intent == 'pcb_flow':
-        session.current_intent = 'pcb_issue'
-        session.save()
-        return "Thank you. Could you describe the problem you're experiencing? Is it not powering on, producing distorted sound, or showing some other issue?"
-
-    if session.current_intent == 'pcb_issue':
-        session.current_intent = None
-        session.save()
-        return (
-            "Understood. We perform advanced **L4 component-level diagnosis** — tracing faults down to the specific chip, capacitor, or resistor. "
-            "Would you like to book it in for a bench diagnostic?\n\n[QUICK:Book Diagnostic|Contact on WhatsApp]"
-        )
-
-    # ── CONTEXT MEMORY RECALL ──
-    if "what device were we discussing" in text or "what were we talking about" in text:
         data = session.state_data
-        model = data.get('model') or data.get('avr_model') or data.get('device')
-        if model:
-            return f"We were discussing your **{model}** — the issue reported was: {data.get('symptom') or data.get('issue') or 'the fault you described earlier'}."
-        return "We were discussing your audio equipment repair. Could you remind me of the model number so I can continue from where we left off?"
 
-    # ── STANDARD REGEX HEURISTICS ──
-    for intent_obj in INTENTS:
-        for keyword_pattern in intent_obj["keywords"]:
-            if re.search(keyword_pattern, text):
-                return intent_obj["response"]
+    # ── 3. START NEW FLOW if no active intent ──
+    elif not session.current_intent:
+        if new_intent:
+            session.current_intent = new_intent
+            session.state_data = {"intent": new_intent, "brand": data.get("brand", ""), "model": data.get("model", "")}
+            session.save()
+            data = session.state_data
+        else:
+            return None  # Fall through to KB / Gemini
 
-    return DEFAULT_FALLBACK_MESSAGE
+    # ── 4. HANDLE BOOK_SERVICE MENU ──
+    if session.current_intent == 'BOOK_SERVICE':
+        # Present menu if we haven't yet, otherwise map choice → real domain
+        if not data.get('menu_shown'):
+            data['menu_shown'] = True
+            session.state_data = data
+            session.save()
+            return DOMAINS['BOOK_SERVICE']['intro']
 
+        # User replied with a menu choice — try to map it
+        matched_domain = None
+        for key, domain_key in BOOK_MENU_MAP.items():
+            if key in text_lower:
+                matched_domain = domain_key
+                break
+        if matched_domain:
+            session.current_intent = matched_domain
+            session.state_data = {"intent": matched_domain}
+            session.save()
+            data = session.state_data
+            # Fall through to domain flow below
+        else:
+            return "I didn't catch that. Please choose one of the services listed above."
+
+    # ── 5. ACTIVE DOMAIN FLOW ──
+    domain_key = session.current_intent
+    domain = DOMAINS.get(domain_key)
+    if not domain:
+        session.current_intent = None
+        session.save()
+        return None
+
+    # Show intro once when flow starts
+    if not data.get('intro_shown'):
+        data['intro_shown'] = True
+        
+        # Override intro with Probability Engine Data if it exists
+        if domain_key in FAULTS_PROBABILITY:
+            intro_msg = f"{FAULTS_PROBABILITY[domain_key]} Let me gather the specifics of your device."
+        else:
+            intro_msg = domain['intro']
+
+        # Find first UNANSWERED field (avoids asking "What Brand" if already extracted!)
+        first_unanswered_field = None
+        for field in domain["fields"]:
+            if not data.get(field):
+                first_unanswered_field = field
+                break
+
+        if first_unanswered_field:
+            data['current_focus'] = first_unanswered_field
+            session.state_data = data
+            session.save()
+            return f"{intro_msg}\n\n{domain['prompts'][first_unanswered_field]}"
+        else:
+            # Everything somehow answered already
+            return intro_msg
+
+    # ── 5a. SAVE ANSWER to current_focus ──
+    focus = data.get('current_focus')
+    if focus and not data.get(focus):
+        data[focus] = text
+        data['current_focus'] = None
+
+    # ── 5b. FIND NEXT UNANSWERED FIELD ──
+    for field in domain["fields"]:
+        if not data.get(field):
+            data['current_focus'] = field
+            session.state_data = data
+            session.save()
+            return domain["prompts"][field]
+
+    # ── 5c. ALL FIELDS GATHERED — Generate WhatsApp Handoff ──
+    wa_button = build_wa_button(domain_key, data)
+    desc = domain['desc']
+
+    # Reset session
+    session.current_intent = None
+    session.state_data = {}
+    session.save()
+
+    return (
+        f"Thank you for providing all the details for your **{desc}** request. "
+        "I have compiled a professional summary for our engineers. "
+        "Tap the button below to send it directly on WhatsApp — "
+        "the message will carry your full context so you won't need to repeat yourself.\n\n"
+        f"{wa_button}"
+    )
+
+
+DEFAULT_FALLBACK_MESSAGE = DEFAULT_FALLBACK
