@@ -32,6 +32,11 @@
 .slide img:hover { filter: brightness(0) invert(1) opacity(1); transform: scale(1.1); }
 .slider-track:hover { animation-play-state: paused; }
 
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-250px * 8)); }
+}
+
 /* Gallery Item */
 .gallery-item { position: relative; overflow: hidden; border-radius: 0.75rem; background: #1a1a1a; border: 1px solid rgba(255, 255, 255, 0.05); }
 .gallery-item img { transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); }

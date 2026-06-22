@@ -19,16 +19,16 @@ cd ..
 
 sleep 1
 
-# Start static frontend on port 8000 (background)
-echo "[2/2] Starting frontend on http://localhost:8000 ..."
-cd "AHA_website_new-20260610T084524Z-3-001/AHA_website_new"
-python3 -m http.server 8000 &
+# Start React frontend using Vite (background)
+echo "[2/2] Starting React frontend with Vite (npm run dev) ..."
+cd aha-frontend
+npm run dev -- --port 5173 &
 FRONTEND_PID=$!
-cd ../..
+cd ..
 
 echo ""
 echo "✅ Both servers are running!"
-echo "   Frontend  → http://localhost:8000"
+echo "   Frontend  → http://localhost:5173"
 echo "   Backend   → http://localhost:8001"
 echo "   Admin     → http://localhost:8001/admin"
 echo ""
