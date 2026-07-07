@@ -28,8 +28,8 @@
 .slider-container::after { right: 0; top: 0; background: linear-gradient(to left, #111111 0%, rgba(17, 17, 17, 0) 100%); }
 .slider-track { display: flex; width: calc(250px * 24); animation: scroll 35s linear infinite; }
 .slide { height: 80px; width: 250px; display: flex; align-items: center; justify-content: center; padding: 0 35px; }
-.slide img { max-width: 100%; max-height: 50px; object-fit: contain; filter: brightness(0) invert(1) opacity(0.4); transition: all 0.4s ease; }
-.slide img:hover { filter: brightness(0) invert(1) opacity(1); transform: scale(1.1); }
+.slide img { max-width: 100%; max-height: 50px; object-fit: contain; transition: all 0.4s ease; }
+.slide img:hover { transform: scale(1.1); }
 .slider-track:hover { animation-play-state: paused; }
 
 @keyframes scroll {

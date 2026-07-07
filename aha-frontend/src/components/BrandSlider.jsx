@@ -21,11 +21,19 @@ export default function BrandSlider() {
       </div>
       <div className="slider-container border-b border-white/5 group relative z-0">
         <div className="slider-track group-hover:[animation-play-state:paused]" id="track">
-          {slides.map((logo, index) => (
-            <div key={index} className="slide opacity-60 hover:opacity-100 hover:scale-110 transition-all duration-500 hover:drop-shadow-[0_0_15px_rgba(94,161,155,0.5)]">
-              <img src={`/${logo}`} alt="Brand Logo" onError={(e) => e.target.style.display = 'none'} className="filter grayscale hover:grayscale-0 transition-all duration-500" />
-            </div>
-          ))}
+          {slides.map((logo, index) => {
+            const needsWhiteBg = logo === 'b-w-logo-new.svg' || logo === 'denon.svg';
+            return (
+              <div key={index} className="slide hover:scale-110 transition-all duration-500 hover:drop-shadow-[0_0_15px_rgba(94,161,155,0.5)]">
+                <img 
+                  src={`/${logo}?v=4`} 
+                  alt="Brand Logo" 
+                  onError={(e) => e.target.style.display = 'none'} 
+                  className={`transition-all duration-500 ${needsWhiteBg ? 'bg-white p-3 rounded-lg object-contain' : ''}`} 
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
