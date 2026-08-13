@@ -69,10 +69,10 @@ export default function HeroSection({ onOpenDiagnostic }) {
               <span className="text-[10px] text-brandTeal font-black uppercase tracking-[0.2em] sm:tracking-[0.3em]">Quality Services Assured</span>
             </motion.div>
 
-            <div className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-white mb-5 leading-[1.08] tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-white mb-5 leading-[1.08] tracking-tight">
               <LetterReveal text="Precision Audio" className="text-brandTeal block" />
               <LetterReveal text="Engineering." delay={0.6} className="text-white block mt-1" />
-            </div>
+            </h1>
 
             {/* Subtext */}
             <TextReveal delay={1.2} className="mt-4 max-w-xl mx-auto lg:mx-0 text-base sm:text-lg md:text-xl text-slate-300 mb-8 font-medium leading-relaxed">
