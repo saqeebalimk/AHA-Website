@@ -5,19 +5,19 @@ import { TiltCard, StaggerContainer, StaggerItem, FloatingGlow, LetterReveal, Te
 const cards = [
   {
     title: 'Corporate & UC Environments',
-    img: '/magnific__talk__27829.png',
+    img: '/magnific__talk__27829.webp',
     alt: 'Corporate UC Integration',
     desc: 'We install sophisticated beamforming microphone arrays that automatically track active speakers while rejecting HVAC noise.',
   },
   {
     title: 'Distributed Audio & IP Scale',
-    img: '/magnific_2954100228.png',
+    img: '/magnific_2954100228.webp',
     alt: 'Architectural Commercial Scale',
     desc: 'To overcome signal degradation over massive footprints, we deploy 70V/100V constant-voltage systems and Audio over IP.',
   },
   {
     title: 'Industrial QA & Bench Testing',
-    img: '/worker-check-speaker-factory.jpg',
+    img: '/worker-check-speaker-factory.webp',
     alt: 'Pre-Installation QA',
     desc: 'Before commercial deployment, enterprise hardware undergoes rigorous bench-testing at our facility.',
     extra: 'sm:col-span-2 lg:col-span-1',
@@ -59,9 +59,9 @@ export default function Installation() {
           <h3 className="text-2xl sm:text-3xl font-black text-white mb-6 sm:mb-8 border-b border-white/10 pb-4">Dedicated Home Cinemas</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:h-[500px]">
             {[
-              { src: '/home-theatre.jpg', label: 'REFERENCE DOLBY ATMOS CINEMAS', span: 'md:row-span-2', h: 'h-56 sm:h-72 md:h-full' },
-              { src: '/large-screen-with-picture-plane-it.jpg', label: 'LARGE FORMAT PROJECTION', span: '', h: 'h-48 sm:h-64 md:h-[242px]' },
-              { src: '/home_theatre_1.jpg', label: 'LUXURY ARCHITECTURAL INTEGRATION', span: '', h: 'h-48 sm:h-64 md:h-[242px]' },
+              { src: '/home-theatre.webp', label: 'REFERENCE DOLBY ATMOS CINEMAS', span: 'md:row-span-2', h: 'h-56 sm:h-72 md:h-full' },
+              { src: '/large-screen-with-picture-plane-it.webp', label: 'LARGE FORMAT PROJECTION', span: '', h: 'h-48 sm:h-64 md:h-[242px]' },
+              { src: '/home_theatre_1.webp', label: 'LUXURY ARCHITECTURAL INTEGRATION', span: '', h: 'h-48 sm:h-64 md:h-[242px]' },
             ].map((img, i) => (
               <motion.div
                 key={i}
@@ -69,7 +69,7 @@ export default function Installation() {
                 viewport={{ once: true }} transition={{ duration: 0.6, delay: i * 0.12 }}
                 className={`rounded-xl overflow-hidden border border-white/10 group ${img.h} ${img.span} relative shadow-2xl`}
               >
-                <img src={img.src} alt={img.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <img src={img.src} alt={img.label} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4 sm:p-6">
                   <span className="text-white font-bold tracking-widest text-xs sm:text-sm">{img.label}</span>
                 </div>
@@ -106,6 +106,7 @@ export default function Installation() {
                   <motion.img
                     src={card.img}
                     alt={card.alt}
+                    loading="lazy"
                     whileHover={{ scale: 1.1 }}
                     transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                     className="w-full h-full object-cover brightness-90 group-hover:brightness-110 transition-[filter] duration-700"

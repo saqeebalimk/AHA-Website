@@ -4,10 +4,10 @@ import { SlideRight, LetterReveal, TextReveal, StaggerContainer, StaggerItem, Ti
 
 export default function PCBRepair() {
   const images = [
-    { src: '/close-up-hands-needle-tipped-tip-service.jpg', title: 'Surgical Soldering' },
-    { src: '/high-angle-female-technician-repairing-computer-motherboard.jpg', title: 'Logic Analysis' },
-    { src: '/computer-with-red-white-cloth-with-red-table-cloth-with-red-table-cloth-with-red-table-cloth-with-white-floral-design.jpg', title: 'Bench Testing' },
-    { src: '/old-radio-parts.jpg', title: 'Vintage Restoration' },
+    { src: '/close-up-hands-needle-tipped-tip-service.webp', title: 'Surgical Soldering' },
+    { src: '/high-angle-female-technician-repairing-computer-motherboard.webp', title: 'Logic Analysis' },
+    { src: '/computer-with-red-white-cloth-with-red-table-cloth-with-red-table-cloth-with-red-table-cloth-with-white-floral-design.webp', title: 'Bench Testing' },
+    { src: '/old-radio-parts.webp', title: 'Vintage Restoration' },
   ];
 
   return (
@@ -29,7 +29,7 @@ export default function PCBRepair() {
           {images.map((img, i) => (
             <StaggerItem key={i}>
               <TiltCard intensity={15} className="h-48 sm:h-64 rounded-xl overflow-hidden border border-white/10 relative shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-                <img src={img.src} alt={img.title} className="w-full h-full object-cover transition-transform duration-700 ease-[0.22,1,0.36,1]" />
+                <img src={img.src} alt={img.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 ease-[0.22,1,0.36,1]" />
                 <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 to-transparent">
                   <p className="text-[10px] font-bold tracking-widest text-brandTeal uppercase">{img.title}</p>
                 </div>

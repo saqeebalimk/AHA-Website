@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AHA Technologies | Quality Services Assured | Audio Experts Bangalore</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandTeal: { DEFAULT: '#5EA19B', dark: '#4a827d', light: '#a3d1cd' },
+                        brandDark: { DEFAULT: '#222222', 900: '#111111', 800: '#1a1a1a' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Montserrat', 'sans-serif'],
+                    },
+                    animation: {
+                        'scroll': 'scroll 40s linear infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        scroll: {
+                            '0%': { transform: 'translateX(0)' },
+                            '100%': { transform: 'translateX(calc(-250px * 8))' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@700;800;900&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #111111; color: #cbd5e1; }
+        h1, h2, h3, h4, .brand-font { font-family: 'Montserrat', sans-serif; }
+
+        /* Slider Styles */
+        .slider-container { overflow: hidden; position: relative; background: #111111; padding: 40px 0; width: 100%; }
+        .slider-container::before, .slider-container::after { content: ""; height: 100%; position: absolute; width: 150px; z-index: 2; pointer-events: none; }
+        .slider-container::before { left: 0; top: 0; background: linear-gradient(to right, #111111 0%, rgba(17, 17, 17, 0) 100%); }
+        .slider-container::after { right: 0; top: 0; background: linear-gradient(to left, #111111 0%, rgba(17, 17, 17, 0) 100%); }
+        .slider-track { display: flex; width: calc(250px * 24); animation: scroll 35s linear infinite; }
+        .slide { height: 80px; width: 250px; display: flex; align-items: center; justify-content: center; padding: 0 35px; }
+        .slide img { max-width: 100%; max-height: 50px; object-fit: contain; filter: brightness(0) invert(1) opacity(0.4); transition: all 0.4s ease; }
+        .slide img:hover { filter: brightness(0) invert(1) opacity(1); transform: scale(1.1); }
+        .slider-track:hover { animation-play-state: paused; }
+
+        /* Utilities */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .chat-scroll::-webkit-scrollbar { width: 6px; }
+        .chat-scroll::-webkit-scrollbar-track { background: transparent; }
+        .chat-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        /* Gallery Item */
+        .gallery-item { position: relative; overflow: hidden; border-radius: 0.75rem; background: #1a1a1a; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .gallery-item img { transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        .gallery-item:hover img { transform: scale(1.08); }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 top-0 transition-all duration-300 bg-brandDark-900/95 backdrop-blur-md border-b border-white/5" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-32 transition-all duration-300" id="nav-container">
+                <!-- Large Logo -->
+                <div class="flex-shrink-0 flex items-center h-full py-4">
+                    <a href="#" class="group h-full flex items-center">
+                        <img src="logo.png" alt="AHA Technologies Logo" class="h-20 md:h-24 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.02]">
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden xl:flex space-x-6 items-center">
+                    <a href="#home" class="text-[11px] font-bold tracking-widest hover:text-brandTeal transition-colors">HOME</a>
+                    <a href="#legacy" class="text-[11px] font-bold tracking-widest hover:text-brandTeal transition-colors">OUR LEGACY</a>
+                    <a href="#gallery" class="text-[11px] font-bold tracking-widest hover:text-brandTeal transition-colors">GALLERY</a>
+                    <a href="#pcb-repair" class="text-[11px] font-bold tracking-widest hover:text-brandTeal transition-colors">L4 PCB REPAIR</a>
+                    <a href="#installation" class="text-[11px] font-bold tracking-widest hover:text-brandTeal transition-colors">INSTALLATION</a>
+                    <a href="#pro-audio" class="text-[11px] font-bold tracking-widest hover:text-brandTeal transition-colors">PRO AUDIO</a>
+                    <a href="#advisor" class="text-[11px] font-bold tracking-widest text-brandTeal flex items-center gap-1">AI ADVISOR ✨</a>
+                </div>
+
+                <button id="mobile-menu-btn" class="xl:hidden text-white p-2 focus:outline-none">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden xl:hidden bg-brandDark border-b border-white/10">
+            <div class="px-4 py-6 space-y-4">
+                <a href="#home" class="block text-white font-bold tracking-widest text-sm mobile-link">HOME</a>
+                <a href="#legacy" class="block text-white font-bold tracking-widest text-sm mobile-link">OUR LEGACY</a>
+                <a href="#gallery" class="block text-white font-bold tracking-widest text-sm mobile-link">GALLERY</a>
+                <a href="#pcb-repair" class="block text-white font-bold tracking-widest text-sm mobile-link">L4 PCB REPAIR</a>
+                <a href="#installation" class="block text-white font-bold tracking-widest text-sm mobile-link">INSTALLATION</a>
+                <a href="#pro-audio" class="block text-white font-bold tracking-widest text-sm mobile-link">PRO AUDIO & AMC</a>
+                <a href="#advisor" class="block text-brandTeal font-bold tracking-widest text-sm mobile-link">AI ADVISOR ✨</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Split Hero Section (Text + Inline Lead Form) -->
+    <section id="home" class="relative pt-44 pb-20 lg:pt-56 lg:pb-32 overflow-hidden" style="background-image: linear-gradient(to right, rgba(17, 17, 17, 0.95) 20%, rgba(17, 17, 17, 0.7) 100%), url('luxury-lifestyle-background-interior-exterior-152.jpg'); background-size: cover; background-position: center; background-attachment: fixed;">
+        <div class="absolute inset-0 bg-brandDark-900/40"></div>
+        <div class="max-w-7xl mx-auto px-4 relative z-10">
+            <div class="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+                
+                <!-- Left: Headline & Actions -->
+                <div class="lg:col-span-7 text-center lg:text-left pt-10">
+                    <div class="inline-flex items-center gap-3 mb-6 px-6 py-2 border border-brandTeal/20 rounded-full bg-brandTeal/10 backdrop-blur-sm">
+                        <span class="w-2 h-2 rounded-full bg-brandTeal animate-pulse"></span>
+                        <span class="text-[11px] text-brandTeal font-black uppercase tracking-[0.3em]">Quality Services Assured</span>
+                    </div>
+                    <h1 class="text-5xl md:text-6xl lg:text-7xl font-black text-white mb-6 leading-[1.1] tracking-tight drop-shadow-lg">
+                        Precision Audio <br><span class="text-brandTeal">Engineering.</span>
+                    </h1>
+                    <p class="mt-4 max-w-xl mx-auto lg:mx-0 text-lg md:text-xl text-slate-300 mb-10 font-medium leading-relaxed drop-shadow-md">
+                        Bangalore's trusted authorized service destination for high-end Hi-Fi systems, amplifiers, and cinematic audio gear. Since 1991.
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+                        <button id="open-diagnostic-btn" class="px-8 py-4 bg-brandTeal text-white font-black tracking-widest text-xs rounded-sm transition-all hover:bg-brandTeal-dark hover:-translate-y-1 shadow-[0_0_20px_rgba(94,161,155,0.4)]">
+                            VISUAL DIAGNOSTIC ✨
+                        </button>
+                        <a href="#advisor" class="px-8 py-4 border border-white/20 text-white font-black tracking-widest text-xs rounded-sm hover:bg-white/10 transition-all flex items-center justify-center gap-2 backdrop-blur-sm">
+                            TALK TO AI ADVISOR
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right: High-Visibility Lead Form -->
+                <div class="lg:col-span-5 relative mt-8 lg:mt-0">
+                    <div class="bg-brandDark-900/70 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden relative">
+                        <!-- Top Image Banner -->
+                        <div class="h-48 w-full relative">
+                            <img src="Gemini_Generated_Image_xi8rhuxi8rhuxi8r.png" alt="Premium Audio Service" class="w-full h-full object-cover">
+                            <!-- Gradient to blend image into the form -->
+                            <div class="absolute inset-0 bg-gradient-to-t from-brandDark-900 to-transparent"></div>
+                            <div class="absolute bottom-4 left-6">
+                                <h3 class="text-2xl font-black text-white drop-shadow-md">Priority Service</h3>
+                                <p class="text-brandTeal text-xs font-bold tracking-widest uppercase mt-1 drop-shadow-md">Master Technicians</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Area -->
+                        <div class="p-6 md:p-8" id="inline-lead-form-container">
+                            <form id="inline-lead-form" class="space-y-4">
+                                <input type="text" id="inline-lead-name" required placeholder="Full Name" class="w-full bg-brandDark/50 border border-white/10 rounded-lg px-4 py-3.5 text-white text-sm focus:outline-none focus:border-brandTeal focus:bg-brandDark transition-colors">
+                                <input type="tel" id="inline-lead-phone" required placeholder="Phone Number" class="w-full bg-brandDark/50 border border-white/10 rounded-lg px-4 py-3.5 text-white text-sm focus:outline-none focus:border-brandTeal focus:bg-brandDark transition-colors">
+                                <input type="email" id="inline-lead-email" required placeholder="Email Address" class="w-full bg-brandDark/50 border border-white/10 rounded-lg px-4 py-3.5 text-white text-sm focus:outline-none focus:border-brandTeal focus:bg-brandDark transition-colors">
+                                <textarea id="inline-lead-issue" required rows="2" placeholder="Equipment Brand & Issue..." class="w-full bg-brandDark/50 border border-white/10 rounded-lg px-4 py-3.5 text-white text-sm focus:outline-none focus:border-brandTeal focus:bg-brandDark transition-colors resize-none"></textarea>
+                                <button type="submit" class="w-full py-4 bg-brandTeal text-white rounded-lg font-black tracking-widest text-xs hover:bg-brandTeal-dark transition-all shadow-lg shadow-brandTeal/20 mt-2 flex justify-center items-center gap-2">
+                                    REQUEST CALL BACK
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Inline Success Message -->
+                        <div id="inline-lead-success-msg" class="hidden text-center py-16 px-6">
+                            <div class="w-16 h-16 bg-brandTeal/20 text-brandTeal rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div>
+                            <h3 class="text-2xl font-black text-white mb-2">Request Processed!</h3>
+                            <p class="text-slate-400 text-sm">We will contact you shortly.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Legacy Introduction Section -->
+    <section id="legacy" class="py-24 bg-brandDark-900 border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid lg:grid-cols-12 gap-16 items-center">
+                <!-- Image Side -->
+                <div class="lg:col-span-5 relative">
+                    <div class="rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative z-10">
+                        <img src="audio_brands_2.png" alt="AHA Technologies Heritage" class="w-full h-auto object-cover hover:scale-105 transition-all duration-700">
+                    </div>
+                    <!-- Experience Badge -->
+                    <div class="absolute -bottom-6 -right-6 bg-brandTeal p-8 rounded-xl shadow-2xl border-4 border-brandDark-900 z-20">
+                        <div class="text-white text-center">
+                            <span class="block text-4xl font-black">50+</span>
+                            <span class="block text-[10px] font-bold uppercase tracking-widest mt-1">Combined Years <br>Expertise</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Side -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-block px-4 py-1 border border-brandTeal/30 rounded-full bg-brandTeal/5">
+                        <span class="text-[10px] text-brandTeal font-black uppercase tracking-[0.2em]">Our History & Commitment</span>
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-black text-white leading-tight">A Legacy of Sound <br><span class="text-brandTeal">Since 1991.</span></h2>
+                    
+                    <div class="prose prose-invert prose-lg text-slate-400 max-w-none space-y-5 text-sm leading-relaxed">
+                        <p>
+                            Bangalore has always been the technological heartbeat of India, and for over three decades, AHA Technologies has been the trusted guardian of its high-fidelity sound. Our journey began in 1991, during an era when premium audio systems were prized possessions and deep technical expertise was a rare, highly sought-after craft. Long before the formal registration of our company in 2008, our founding engineers were deeply entrenched in the AV industry, mastering the complexities of pure analog systems and adapting to the earliest waves of digital integration.
+                        </p>
+                        <p>
+                            AHA Technologies wasn't simply built on a business model; it was forged from an uncompromising passion for sonic perfection. We formally stepped into the corporate landscape in 2008 to better structure our services for a rapidly growing roster of institutional and premium residential clients. However, our roots remain firmly planted in the meticulous, "hands-on" engineering ethos of the early 90s. Today, we stand as a beacon of reliability and precision in an industry that is too often plagued by temporary fixes, board-swapping mentalities, and generic, unverified parts.
+                        </p>
+                        <p>
+                            What truly sets us apart is our <strong>Collective Expertise</strong>. The combined technical knowledge of our bench staff exceeds 50 years—a half-century of troubleshooting, restoring, and optimizing some of the world's most sophisticated audio equipment. This isn't just experience; it's a deep-seated institutional memory. It allows us to solve intricate electronic problems where others only see dead ends. From vintage tube amplifiers requiring delicate bias adjustments to modern 8K HDMI processors needing BGA reflows, our team inherently understands the DNA of sound.
+                        </p>
+                        <p>
+                            At the absolute core of AHA Technologies are three non-negotiable pillars:
+                        </p>
+                        <ul class="space-y-3 list-none p-0 mt-4">
+                            <li class="flex gap-4 items-start">
+                                <span class="text-brandTeal font-bold mt-0.5">01.</span>
+                                <span><strong>Uncompromising Service Quality:</strong> We specialize in complex Level 4 PCB repair, ensuring that we fix the root cause of an issue at the micro-component level rather than burdening the customer with expensive, unnecessary full-board replacements.</span>
+                            </li>
+                            <li class="flex gap-4 items-start">
+                                <span class="text-brandTeal font-bold mt-0.5">02.</span>
+                                <span><strong>Genuineness Guaranteed:</strong> Every capacitor, transistor, and logic chip we utilize is sourced through authorized, verified channels. We firmly believe that an audio unit is only as strong as its weakest internal link.</span>
+                            </li>
+                            <li class="flex gap-4 items-start">
+                                <span class="text-brandTeal font-bold mt-0.5">03.</span>
+                                <span><strong>Pioneering After-Sales Support:</strong> Our relationship with a client does not end when a repaired unit is delivered. We provide comprehensive ongoing support and acoustic consultation, ensuring your investment continues to perform at factory specifications for years to come.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery" class="py-24 bg-brandDark">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <div class="inline-block mb-4 px-4 py-1 border border-brandTeal/30 rounded-full bg-brandTeal/5">
+                    <span class="text-[10px] text-brandTeal font-black uppercase tracking-[0.2em]">Work in Progress</span>
+                </div>
+                <h2 class="text-4xl md:text-5xl font-black text-white mb-6">Technical Showcase</h2>
+                <p class="text-lg text-slate-400 max-w-3xl mx-auto italic">Inside the lab: A glimpse into our daily commitment to precision, genuine component usage, and micro-electronic mastery.</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div class="gallery-item aspect-square cursor-pointer" onclick="openImageModal(this)"><img src="IMG-20251018-WA0021.jpg" class="w-full h-full object-cover"></div>
+                <div class="gallery-item aspect-square cursor-pointer" onclick="openImageModal(this)"><img src="IMG-20251021-WA0021.jpg" class="w-full h-full object-cover"></div>
+                <div class="gallery-item aspect-square cursor-pointer" onclick="openImageModal(this)"><img src="IMG-20251021-WA0022.jpg" class="w-full h-full object-cover"></div>
+                <div class="gallery-item aspect-square cursor-pointer" onclick="openImageModal(this)"><img src="IMG-20251031-WA0025.jpg" class="w-full h-full object-cover"></div>
+                <div class="gallery-item aspect-square cursor-pointer" onclick="openImageModal(this)"><img src="IMG-20251031-WA0026.jpg" class="w-full h-full object-cover"></div>
+                <div class="gallery-item aspect-square cursor-pointer" onclick="openImageModal(this)"><img src="IMG-20251110-WA0013.jpg" class="w-full h-full object-cover"></div>
+                <div class="gallery-item aspect-square cursor-pointer" onclick="openImageModal(this)"><img src="IMG-20251203-WA0023.jpg" class="w-full h-full object-cover"></div>
+                <div class="gallery-item aspect-square cursor-pointer" onclick="openImageModal(this)"><img src="IMG-20251203-WA0025.jpg" class="w-full h-full object-cover"></div>
+                <div class="gallery-item aspect-square cursor-pointer" onclick="openImageModal(this)"><img src="IMG-20251203-WA0026.jpg" class="w-full h-full object-cover"></div>
+                <div class="gallery-item aspect-square cursor-pointer" onclick="openImageModal(this)"><img src="IMG-20251203-WA0028.jpg" class="w-full h-full object-cover"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dynamic Brand Slider -->
+    <section id="brands" class="border-y border-white/5">
+        <div class="bg-brandDark-900 pt-10 pb-4 text-center">
+            <h2 class="text-[10px] font-black text-brandTeal uppercase tracking-[0.4em]">Official Service Partners</h2>
+        </div>
+        <div class="slider-container border-b border-white/5">
+            <div class="slider-track" id="track"></div>
+        </div>
+    </section>
+
+    <!-- Guide Section -->
+    <section id="guide" class="py-24 bg-brandDark-900">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-black text-white mb-6">The AHA Audio Guide</h2>
+                <p class="text-lg text-slate-400 max-w-3xl mx-auto">Master your listening experience. Whether you are building a pure stereo setup or a fully immersive home theatre, understanding the fundamentals is key to audio nirvana.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="bg-brandDark border border-white/5 p-8 rounded-xl hover:border-brandTeal/50 transition-colors group">
+                    <div class="w-12 h-12 bg-brandTeal/10 rounded-lg flex items-center justify-center mb-6 text-brandTeal group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-3">Hi-Fi Audio Principles</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">"High Fidelity" (Hi-Fi) audio aims to reproduce sound exactly as the artist intended in the studio. It prioritizes a flat frequency response (no artificial bass or treble boosting), minimal distortion, and a high dynamic range.</p>
+                </div>
+                <div class="bg-brandDark border border-white/5 p-8 rounded-xl hover:border-brandTeal/50 transition-colors group">
+                    <div class="w-12 h-12 bg-brandTeal/10 rounded-lg flex items-center justify-center mb-6 text-brandTeal group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-3">The Purist Stereo (2.0 / 2.1)</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">The gold standard for music listening. A 2.0 setup consists of a Left and Right speaker, creating a "phantom center" image. Adding a subwoofer (2.1) handles the ultra-low frequencies.</p>
+                </div>
+                <div class="bg-brandDark border border-white/5 p-8 rounded-xl hover:border-brandTeal/50 transition-colors group">
+                    <div class="w-12 h-12 bg-brandTeal/10 rounded-lg flex items-center justify-center mb-6 text-brandTeal group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-3">Home Theatre & Dolby 5.1</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Cinematic audio surrounds you. A classic 5.1 setup includes Left, Right, and Center (LCR) speakers in front, two surround speakers behind/beside you, and one (.1) Subwoofer.</p>
+                </div>
+                <div class="bg-brandDark border border-white/5 p-8 rounded-xl hover:border-brandTeal/50 transition-colors group">
+                    <div class="w-12 h-12 bg-brandTeal/10 rounded-lg flex items-center justify-center mb-6 text-brandTeal group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-3">The 3D Atmos Experience</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Dolby Atmos moves away from "channels" to "object-based" audio, placing sounds freely in a 3D hemisphere around you. A 5.1.2 setup adds overhead/up-firing Atmos speakers for a seamless audio bubble.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- L4 PCB REPAIR SECTION -->
+    <section id="pcb-repair" class="py-32 bg-brandDark relative overflow-hidden border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4 relative z-10">
+            <div class="mb-20">
+                <div class="inline-block mb-4 px-4 py-1 border border-brandTeal/30 rounded-full bg-brandTeal/5">
+                    <span class="text-[10px] text-brandTeal font-black uppercase tracking-[0.2em]">Micro-Electronic Engineering</span>
+                </div>
+                <h2 class="text-4xl md:text-6xl font-black text-white mb-8">L4 & Comprehensive <br><span class="text-brandTeal">PCB Repair Services.</span></h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-20">
+                <div class="h-64 rounded-xl overflow-hidden border border-white/10 group"><img src="close-up-hands-needle-tipped-tip-service.jpg" alt="Surgical Soldering" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"></div>
+                <div class="h-64 rounded-xl overflow-hidden border border-white/10 group"><img src="high-angle-female-technician-repairing-computer-motherboard.jpg" alt="Motherboard Analysis" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"></div>
+                <div class="h-64 rounded-xl overflow-hidden border border-white/10 group"><img src="computer-with-red-white-cloth-with-red-table-cloth-with-red-table-cloth-with-red-table-cloth-with-white-floral-design.jpg" alt="Bench Testing" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"></div>
+                <div class="h-64 rounded-xl overflow-hidden border border-white/10 group"><img src="old-radio-parts.jpg" alt="Vintage Components" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"></div>
+            </div>
+
+            <div class="prose prose-invert prose-lg max-w-none text-slate-400 space-y-12">
+                <div class="grid lg:grid-cols-3 gap-12 items-start">
+                    <div class="lg:col-span-2 space-y-6">
+                        <h3 class="text-3xl font-black text-white uppercase tracking-tight">Component-Level Mastery</h3>
+                        <p>In the modern era of consumer electronics, "repair" has unfortunately become synonymous with "replacement." When a high-end Marantz receiver or a Denon amplifier fails, most service centers will simply declare a board "dead" and quote the price of a full module replacement. At AHA Technologies, we operate at **Level 4 (L4) Service Proficiency**. This means we go deep into the microscopic architecture of the PCB to identify and replace the specific failed components.</p>
+                        <p>Our lab is equipped with infrared BGA rework stations, high-magnification digital microscopes, and precision desoldering tools. By focusing on the root cause, we provide a repair solution that is more sustainable, cost-effective, and reliable.</p>
+                    </div>
+                    <div class="bg-brandDark-900 border border-brandTeal/20 p-8 rounded-xl shadow-inner">
+                        <h4 class="text-brandTeal font-black mb-4 uppercase tracking-widest text-sm text-center">Repair Specializations</h4>
+                        <ul class="text-sm space-y-3 list-none p-0">
+                            <li class="flex items-center gap-2 text-white"><span class="w-1.5 h-1.5 bg-brandTeal rounded-full"></span> SMPS Power Units</li>
+                            <li class="flex items-center gap-2 text-white"><span class="w-1.5 h-1.5 bg-brandTeal rounded-full"></span> HDMI & DSP Digital Boards</li>
+                            <li class="flex items-center gap-2 text-white"><span class="w-1.5 h-1.5 bg-brandTeal rounded-full"></span> Speaker Crossover PCBs</li>
+                            <li class="flex items-center gap-2 text-white"><span class="w-1.5 h-1.5 bg-brandTeal rounded-full"></span> Discrete Class-AB Arrays</li>
+                            <li class="flex items-center gap-2 text-white"><span class="w-1.5 h-1.5 bg-brandTeal rounded-full"></span> Logic Control Units</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-16 pt-12">
+                    <div class="space-y-4">
+                        <h4 class="text-2xl font-bold text-white border-l-4 border-brandTeal pl-4">SMPS & Power Assembly Repair</h4>
+                        <p class="text-sm leading-relaxed">The Switch Mode Power Supply (SMPS) is the most common point of failure. High heat, voltage spikes, and aging electrolytic capacitors lead to "no power" conditions. Our L4 technicians specialize in replacing primary-side switching transistors, PWM ICs, and high-precision optocouplers.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-2xl font-bold text-white border-l-4 border-brandTeal pl-4">Digital & DSP PCB Restoration</h4>
+                        <p class="text-sm leading-relaxed">Digital boards hosting HDMI switchers and Surround Sound DSPs are notoriously sensitive. A "cold solder joint" on a BGA chip can cause lost audio channels. We perform surgical re-balling and reflowing of these processors.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-2xl font-bold text-white border-l-4 border-brandTeal pl-4">Speaker & Crossover Electronics</h4>
+                        <p class="text-sm leading-relaxed">Even high-end passive speakers have PCBs inside them: the Crossover. Over time, high-wattage resistors can crack. In active speakers, we repair the internal amplification assembly PCBs.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-2xl font-bold text-white border-l-4 border-brandTeal pl-4">Amplification & Output Arrays</h4>
+                        <p class="text-sm leading-relaxed">When an amplifier goes into "Protect Mode," it’s often due to a blown output transistor or a failed DC offset circuit on the output assembly PCB. We match-pair transistors to ensure perfectly symmetrical waveforms.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- INSTALLATION SECTION -->
+    <section id="installation" class="py-32 bg-brandDark-900 border-t border-white/5 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 relative z-10">
+            <div class="mb-20 text-center max-w-4xl mx-auto">
+                <div class="inline-block mb-4 px-4 py-1 border border-brandTeal/30 rounded-full bg-brandTeal/5">
+                    <span class="text-[10px] text-brandTeal font-black uppercase tracking-[0.2em]">Master Integration</span>
+                </div>
+                <h2 class="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-8 leading-tight">Architectural Audio: <br><span class="text-brandTeal">Residential & Commercial.</span></h2>
+                <p class="text-lg text-slate-400 leading-relaxed">
+                    Procuring world-class audio equipment is merely the first step. At AHA Technologies, we bridge the complex gap between high-end electronics and architectural environments for both premium residences and large-scale commercial spaces.
+                </p>
+            </div>
+
+            <!-- Home Theatre Image Gallery Integration -->
+            <div class="mb-20">
+                <h3 class="text-3xl font-black text-white mb-8 border-b border-white/10 pb-4">Dedicated Home Cinemas</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-auto md:h-[500px]">
+                    <div class="rounded-xl overflow-hidden border border-white/10 group h-64 md:h-full md:row-span-2 relative shadow-2xl">
+                        <img src="home-theatre.jpg" alt="Reference Home Theatre" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">REFERENCE DOLBY ATMOS CINEMAS</span>
+                        </div>
+                    </div>
+                    <div class="rounded-xl overflow-hidden border border-white/10 group h-64 md:h-[242px] relative shadow-2xl">
+                        <img src="large-screen-with-picture-plane-it.jpg" alt="Large Screen Projection" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">LARGE FORMAT PROJECTION</span>
+                        </div>
+                    </div>
+                    <div class="rounded-xl overflow-hidden border border-white/10 group h-64 md:h-[242px] relative shadow-2xl">
+                        <img src="home_theatre_1.jpg" alt="Luxury Architectural Integration" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">LUXURY ARCHITECTURAL INTEGRATION</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Commercial Integration -->
+            <div class="mt-24 mb-12">
+                <h3 class="text-3xl font-black text-white mb-8 border-b border-white/10 pb-4">Commercial Integration & Enterprise Scale</h3>
+                <p class="text-slate-400 text-lg leading-relaxed mb-10 max-w-5xl">
+                    Beyond luxury residences, AHA Technologies architects resilient audio frameworks for commercial sectors. From corporate boardrooms requiring pristine speech intelligibility to vast hospitality venues needing perfectly balanced background audio.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-brandDark border border-white/5 rounded-xl overflow-hidden group shadow-2xl">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="magnific__talk__27829.png" alt="Corporate UC Integration" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="text-brandTeal font-bold text-lg mb-3">Corporate & UC Environments</h4>
+                        <p class="text-slate-400 text-sm leading-relaxed">We install sophisticated beamforming microphone arrays that automatically track active speakers while rejecting HVAC noise and room reverberation.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-brandDark border border-white/5 rounded-xl overflow-hidden group shadow-2xl">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="magnific_2954100228.png" alt="Architectural Commercial Scale" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="text-brandTeal font-bold text-lg mb-3">Distributed Audio & IP Scale</h4>
+                        <p class="text-slate-400 text-sm leading-relaxed">To overcome signal degradation over massive footprints, we deploy 70V/100V constant-voltage systems and integrate Audio over IP (AoIP) protocols.</p>
+                    </div>
+                </div>
+
+                <div class="bg-brandDark border border-white/5 rounded-xl overflow-hidden group shadow-2xl">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="worker-check-speaker-factory.jpg" alt="Pre-Installation QA" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="text-brandTeal font-bold text-lg mb-3">Industrial QA & Bench Testing</h4>
+                        <p class="text-slate-400 text-sm leading-relaxed">Before commercial deployment, enterprise hardware undergoes rigorous bench-testing, thermal checks, and impedance sweeps at our facility.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRO AUDIO SECTION -->
+    <section id="pro-audio" class="py-32 bg-brandDark border-t border-white/5 relative">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="mb-20">
+                <div class="inline-block mb-4 px-4 py-1 border border-brandTeal/30 rounded-full bg-brandTeal/5">
+                    <span class="text-[10px] text-brandTeal font-black uppercase tracking-[0.2em]">Maintenance Solutions</span>
+                </div>
+                <h2 class="text-4xl md:text-6xl font-black text-white mb-8 leading-tight">Pro Audio &<br><span class="text-brandTeal">Preventive Maintenance.</span></h2>
+            </div>
+
+            <div class="bg-brandDark-900 border-l-4 border-brandTeal p-10 md:p-16 rounded-sm shadow-2xl">
+                <p class="mb-10 text-slate-400 leading-relaxed max-w-4xl">Like high-performance machinery, commercial audio equipment requires rigorous, scheduled maintenance to ensure longevity and prevent catastrophic failures during critical events.</p>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="space-y-3">
+                        <h5 class="text-white font-bold text-lg flex items-center gap-2">
+                            <span class="w-2 h-2 bg-brandTeal rounded-full"></span> Thermal Deep Cleaning
+                        </h5>
+                        <p class="text-slate-400 text-sm">We clear fan intakes and deep-clean heat sinks to prevent thermal-induced shutdowns.</p>
+                    </div>
+                    <div class="space-y-3">
+                        <h5 class="text-white font-bold text-lg flex items-center gap-2">
+                            <span class="w-2 h-2 bg-brandTeal rounded-full"></span> Impedance Sweep
+                        </h5>
+                        <p class="text-slate-400 text-sm">Periodic testing to detect deteriorating speaker voice coils before they blow your amplifiers.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI ADVISOR SECTION -->
+    <section id="advisor" class="py-24 bg-brandDark-900 border-t border-white/5 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 relative z-10">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-black text-white mb-4">AHA Voice Advisor ✨</h2>
+                <p class="text-slate-400">Ask our AI lead engineer about your equipment issues. Voice responses enabled.</p>
+            </div>
+
+            <div class="max-w-3xl mx-auto bg-brandDark border border-white/10 rounded-2xl overflow-hidden flex flex-col h-[500px] shadow-2xl">
+                <div id="chat-window" class="flex-1 p-6 overflow-y-auto chat-scroll space-y-4">
+                    <div class="flex justify-start gap-4 mb-6">
+                        <div class="w-10 h-10 rounded-full bg-brandTeal flex-shrink-0 flex items-center justify-center text-white text-xs font-black mt-1">AHA</div>
+                        <div class="bg-brandDark-900 text-slate-300 p-5 rounded-2xl rounded-tl-none border border-white/10 text-sm max-w-[85%] text-left">
+                            Welcome to the AHA Tech Lab. I have 50 years of collective expertise behind me. How can I help with your AV equipment today?
+                        </div>
+                    </div>
+                </div>
+
+                <div id="chat-loading" class="hidden px-6 py-2">
+                    <div class="flex gap-1">
+                        <div class="w-1.5 h-1.5 bg-brandTeal rounded-full animate-bounce"></div>
+                        <div class="w-1.5 h-1.5 bg-brandTeal rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                        <div class="w-1.5 h-1.5 bg-brandTeal rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-brandDark border-t border-white/10 flex gap-4">
+                    <input type="text" id="user-input" class="flex-1 bg-brandDark-900 border border-white/10 rounded-xl px-6 py-4 text-white text-sm focus:outline-none focus:border-brandTeal transition-all" placeholder="Ask about Dolby Atmos, Amp repair, or Pro Audio...">
+                    <button id="send-btn" class="px-8 py-4 bg-brandTeal text-white rounded-xl font-black tracking-widest text-xs hover:bg-brandTeal-dark transition-all">SEND</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-brandDark-900 pt-24 pb-12 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-center mb-10">
+                <img src="logo.png" alt="AHA Technologies Logo" class="h-16 object-contain opacity-50">
+            </div>
+            <div class="flex justify-center gap-6 mb-16 flex-wrap">
+                <a href="#home" class="text-[10px] font-black text-slate-400 hover:text-brandTeal tracking-[0.2em] transition-colors">HOME</a>
+                <a href="#legacy" class="text-[10px] font-black text-slate-400 hover:text-brandTeal tracking-[0.2em] transition-colors">OUR LEGACY</a>
+                <a href="#gallery" class="text-[10px] font-black text-slate-400 hover:text-brandTeal tracking-[0.2em] transition-colors">GALLERY</a>
+                <a href="#pcb-repair" class="text-[10px] font-black text-slate-400 hover:text-brandTeal tracking-[0.2em] transition-colors">L4 PCB REPAIR</a>
+                <a href="#installation" class="text-[10px] font-black text-slate-400 hover:text-brandTeal tracking-[0.2em] transition-colors">INSTALLATION</a>
+                <a href="#pro-audio" class="text-[10px] font-black text-slate-400 hover:text-brandTeal tracking-[0.2em] transition-colors">PRO AUDIO</a>
+            </div>
+            <div class="text-center text-[10px] text-slate-600 font-bold tracking-widest uppercase">
+                &copy; 2026 AHA Technologies Bangalore. All Rights Reserved. Est 1991.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating CTA Button (Triggers Service Request Modal) -->
+    <button id="floating-cta" class="fixed bottom-8 right-8 z-[60] bg-brandTeal text-white rounded-full p-4 shadow-[0_0_25px_rgba(94,161,155,0.6)] hover:scale-110 hover:bg-brandTeal-dark transition-all duration-300 flex items-center justify-center group">
+        <svg class="w-8 h-8 animate-pulse-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+        <span class="absolute right-full mr-4 bg-brandDark-900 text-brandTeal text-[10px] font-black uppercase tracking-widest px-4 py-3 rounded-sm shadow-2xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10">Request Service</span>
+    </button>
+
+    <!-- Floating WhatsApp Chat Button -->
+    <a href="https://wa.me/919964689378?text=Hello%20AHA%20Technologies!%20I%20have%20an%20inquiry%20regarding%20my%20AV%20equipment." target="_blank" rel="noopener noreferrer" class="fixed bottom-28 right-8 z-[60] bg-[#25D366] text-white rounded-full p-4 shadow-[0_0_25px_rgba(37,211,102,0.4)] hover:scale-110 hover:bg-[#20b858] transition-all duration-300 flex items-center justify-center group">
+        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.305-.885-.653-1.482-1.459-1.656-1.756-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+        <span class="absolute right-full mr-4 bg-brandDark-900 text-[#25D366] text-[10px] font-black uppercase tracking-widest px-4 py-3 rounded-sm shadow-2xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10">Chat on WhatsApp</span>
+    </a>
+
+    <!-- Modal 1: Lead Form (Service Request) -->
+    <div id="lead-modal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4">
+        <div id="lead-modal-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity opacity-0"></div>
+        <div id="lead-modal-content" class="bg-brandDark-900 border border-white/10 rounded-xl shadow-2xl w-full max-w-md relative z-10 transform scale-95 opacity-0 transition-all duration-300 overflow-hidden">
+            <button id="close-lead-modal" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="p-8">
+                <h3 class="text-2xl font-black text-white mb-2">Priority Service</h3>
+                <p class="text-slate-400 text-sm mb-6">Enter your details and issue below. Our master technicians will contact you immediately.</p>
+                <div id="lead-form-container">
+                    <form id="lead-form" class="space-y-4">
+                        <input type="text" id="lead-name" required placeholder="Full Name" class="w-full bg-brandDark border border-white/10 rounded-lg px-5 py-3 text-white text-sm focus:outline-none focus:border-brandTeal">
+                        <input type="tel" id="lead-phone" required placeholder="Phone Number" class="w-full bg-brandDark border border-white/10 rounded-lg px-5 py-3 text-white text-sm focus:outline-none focus:border-brandTeal">
+                        <input type="email" id="lead-email" required placeholder="Email Address" class="w-full bg-brandDark border border-white/10 rounded-lg px-5 py-3 text-white text-sm focus:outline-none focus:border-brandTeal">
+                        <textarea id="lead-issue" required rows="3" placeholder="Equipment Brand & Issue..." class="w-full bg-brandDark border border-white/10 rounded-lg px-5 py-3 text-white text-sm focus:outline-none focus:border-brandTeal resize-none"></textarea>
+                        <button type="submit" class="w-full py-4 bg-brandTeal text-white rounded-lg font-black tracking-widest text-xs hover:bg-brandTeal-dark transition-all mt-2">SEND REQUEST</button>
+                    </form>
+                </div>
+                <div id="lead-success-msg" class="hidden text-center py-6">
+                    <div class="w-16 h-16 bg-brandTeal/20 text-brandTeal rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div>
+                    <h3 class="text-2xl font-black text-white mb-2">Request Processed!</h3>
+                    <p class="text-slate-400 text-sm">We will get back to you shortly.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Visual Diagnostic (AI) -->
+    <div id="diagnostic-modal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4">
+        <div id="diag-modal-backdrop" class="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity opacity-0"></div>
+        <div id="diag-modal-content" class="bg-brandDark-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg p-8 relative z-10 transform scale-95 opacity-0 transition-all duration-300">
+            <button id="close-diag-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </button>
+            <h3 class="text-2xl font-black text-white mb-2">Visual Diagnostic ✨</h3>
+            <p class="text-slate-400 text-xs mb-6">Upload an image of your equipment for a preliminary Gemini AI assessment.</p>
+            <div class="space-y-4">
+                <div class="border-2 border-dashed border-white/10 rounded-xl p-8 text-center cursor-pointer hover:border-brandTeal transition-all relative">
+                    <input type="file" id="fault-image" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*">
+                    <div id="upload-placeholder" class="text-slate-500 text-xs uppercase tracking-widest font-bold">Select Image</div>
+                    <img id="image-preview" class="hidden w-full h-32 object-contain">
+                </div>
+                <button id="analyze-btn" class="w-full py-4 bg-brandTeal text-white rounded-lg font-black tracking-widest text-xs disabled:opacity-50">ANALYZE NOW</button>
+                <div id="analysis-result" class="text-xs text-slate-300 mt-4 leading-relaxed max-h-40 overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Gallery Lightbox -->
+    <div id="image-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/95 backdrop-blur-md p-4">
+        <button id="close-image-modal" class="absolute top-8 right-8 text-white hover:text-brandTeal transition-colors">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <div class="max-w-5xl w-full flex items-center justify-center">
+            <img id="modal-img" src="" alt="Zoomed Work" class="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl border border-white/10">
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const apiKey = "AIzaSyCGIuS1mZ5DG_cWXjznlQYdQHnIC_d9rOc"; // Runtime populated
+            
+            // --- Navigation & Mobile Menu ---
+            const btn = document.getElementById('mobile-menu-btn');
+            const menu = document.getElementById('mobile-menu');
+            const mobileLinks = document.querySelectorAll('.mobile-link');
+            if(btn && menu) {
+                btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+                mobileLinks.forEach(link => link.addEventListener('click', () => menu.classList.add('hidden')));
+            }
+            window.addEventListener('scroll', () => {
+                const nav = document.getElementById('navbar');
+                const container = document.getElementById('nav-container');
+                if (nav && container) {
+                    if (window.scrollY > 50) {
+                        container.classList.remove('h-32'); container.classList.add('h-20');
+                        nav.classList.add('shadow-xl');
+                    } else {
+                        container.classList.remove('h-20'); container.classList.add('h-32');
+                        nav.classList.remove('shadow-xl');
+                    }
+                }
+            });
+
+            // --- Gallery Lightbox ---
+            const galleryImages = document.querySelectorAll('.gallery-item img');
+            const imageModal = document.getElementById('image-modal');
+            const modalImg = document.getElementById('modal-img');
+            const closeImageModal = document.getElementById('close-image-modal');
+            if(imageModal && modalImg && closeImageModal) {
+                galleryImages.forEach(img => {
+                    img.addEventListener('click', () => {
+                        modalImg.src = img.src;
+                        imageModal.classList.remove('hidden'); imageModal.classList.add('flex');
+                        document.body.style.overflow = 'hidden';
+                    });
+                });
+                closeImageModal.addEventListener('click', () => {
+                    imageModal.classList.add('hidden'); imageModal.classList.remove('flex');
+                    document.body.style.overflow = 'auto';
+                });
+            }
+
+            // --- Brand Slider ---
+            const logos = [
+                'accuphase-logo.svg', 
+                'b-w-logo-new.svg', 
+                'denon.svg', 
+                'dynaudio-1.svg',
+                'jbl-logo.svg', 
+                'marantz-logo.svg', 
+                'yamaha-purple.svg',
+                'QUALITY SERVICES ASSURED.png-2273bcdb-8387-47df-9936-08892271a03b'
+            ];
+            const track = document.getElementById('track');
+            if(track) {
+                const createSlides = (items) => {
+                    items.forEach(logo => {
+                        const slide = document.createElement('div');
+                        slide.className = 'slide';
+                        const img = document.createElement('img');
+                        img.src = logo;
+                        img.onerror = () => { slide.innerHTML = `<span class="text-xs text-slate-500">AHA</span>`; };
+                        slide.appendChild(img);
+                        track.appendChild(slide);
+                    });
+                };
+                [1, 2, 3].forEach(() => createSlides(logos));
+            }
+
+            // --- Gemini Utility ---
+            async function fetchGemini(endpoint, payload) {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${endpoint}?key=${apiKey}`;
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                    });
+                    return await response.json();
+                } catch (e) { return null; }
+            }
+
+            // --- AI Advisor Chat & TTS ---
+            const chatWindow = document.getElementById('chat-window');
+            const userInput = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            const chatLoading = document.getElementById('chat-loading');
+
+            function pcmToWav(pcmData, sampleRate) {
+                const buffer = new ArrayBuffer(44 + pcmData.length); const view = new DataView(buffer);
+                view.setUint32(0, 0x46464952); view.setUint32(4, 36 + pcmData.length, true); view.setUint32(8, 0x45564157);
+                view.setUint32(12, 0x20746d66); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+                view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true);
+                view.setUint16(34, 16, true); view.setUint32(36, 0x61746164); view.setUint32(40, pcmData.length, true);
+                for (let i = 0; i < pcmData.length; i++) view.setUint8(44 + i, pcmData[i]);
+                return new Blob([buffer], { type: 'audio/wav' });
+            }
+
+            async function speak(text) {
+                if(!apiKey) return;
+                const payload = {
+                    contents: [{ parts: [{ text: `Professional technician voice: ${text}` }] }],
+                    generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } } }
+                };
+                const res = await fetchGemini('gemini-2.5-flash-preview-tts:generateContent', payload);
+                if(res && res.candidates) {
+                    const base64 = res.candidates[0].content.parts[0].inlineData.data;
+                    const wav = pcmToWav(Uint8Array.from(atob(base64), c => c.charCodeAt(0)), 24000);
+                    new Audio(URL.createObjectURL(wav)).play();
+                }
+            }
+
+            function appendMsg(role, text) {
+                if(!chatWindow) return;
+                const d = document.createElement('div');
+                d.className = `flex gap-4 mb-4 ${role === 'user' ? 'flex-row-reverse' : ''}`;
+                d.innerHTML = `
+                    ${role === 'bot' ? '<div class="w-10 h-10 rounded-full bg-brandTeal flex-shrink-0 flex items-center justify-center text-white text-[10px] font-black mt-1">AHA</div>' : ''}
+                    <div class="${role === 'user' ? 'bg-brandTeal text-white rounded-tr-none' : 'bg-brandDark-900 border border-white/5 text-slate-300 rounded-tl-none'} p-5 rounded-2xl max-w-[80%] text-sm leading-relaxed">${text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')}</div>
+                `;
+                chatWindow.appendChild(d);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            }
+
+            async function chat() {
+                const q = userInput.value.trim();
+                if(!q) return;
+                appendMsg('user', q);
+                userInput.value = '';
+                if(chatLoading) chatLoading.classList.remove('hidden');
+
+                const payload = {
+                    contents: [{ parts: [{ text: q }] }],
+                    systemInstruction: { parts: [{ text: "You are the head engineer of AHA Technologies Bangalore. Expertise: 50+ years combined. High-fidelity audio, SMPS, and L4 PCB repair. Be professional, concise. Max 3 sentences." }] }
+                };
+                
+                const data = await fetchGemini('gemini-2.5-flash-preview-09-2025:generateContent', payload);
+                if(chatLoading) chatLoading.classList.add('hidden');
+                
+                const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Diagnostic connection failed. Please ensure API key is set.";
+                appendMsg('bot', reply);
+                speak(reply);
+            }
+
+            if(sendBtn) sendBtn.onclick = chat;
+            if(userInput) userInput.onkeypress = e => e.key === 'Enter' && chat();
+
+            // --- AI Visual Diagnostic Modal ---
+            const diagModal = document.getElementById('diagnostic-modal');
+            const diagBackdrop = document.getElementById('diag-modal-backdrop');
+            const diagContent = document.getElementById('diag-modal-content');
+            const closeDiagBtn = document.getElementById('close-diag-modal');
+            const openDiagBtn = document.getElementById('open-diagnostic-btn');
+            const fileIn = document.getElementById('fault-image');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const resultArea = document.getElementById('analysis-result');
+
+            function openDiagModal() {
+                diagModal.classList.remove('hidden'); diagModal.classList.add('flex');
+                setTimeout(() => { diagBackdrop.classList.remove('opacity-0'); diagContent.classList.remove('scale-95', 'opacity-0'); }, 10);
+            }
+            function closeDiagModal() {
+                diagBackdrop.classList.add('opacity-0'); diagContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => { diagModal.classList.add('hidden'); diagModal.classList.remove('flex'); }, 300);
+            }
+            if(openDiagBtn) openDiagBtn.addEventListener('click', openDiagModal);
+            if(closeDiagBtn) closeDiagBtn.addEventListener('click', closeDiagModal);
+
+            if(fileIn) {
+                fileIn.onchange = e => {
+                    const file = e.target.files[0];
+                    if(file) {
+                        document.getElementById('image-preview').src = URL.createObjectURL(file);
+                        document.getElementById('image-preview').classList.remove('hidden');
+                        document.getElementById('upload-placeholder').classList.add('hidden');
+                    }
+                };
+            }
+
+            if(analyzeBtn) {
+                analyzeBtn.onclick = async () => {
+                    const file = fileIn.files[0];
+                    if(!file) return;
+                    analyzeBtn.disabled = true;
+                    resultArea.innerHTML = "Consulting technical records (Gemini Analysis)...";
+                    
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = async () => {
+                        const payload = {
+                            contents: [{ parts: [{ text: "Analyze this audio equipment for faults. Suggest repair steps." }, { inlineData: { mimeType: file.type, data: reader.result.split(',')[1] } }] }]
+                        };
+                        const data = await fetchGemini('gemini-2.5-flash-preview-09-2025:generateContent', payload);
+                        const resultText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Analysis error. Please bring unit to lab.";
+                        resultArea.innerHTML = `<span class="text-brandTeal font-bold uppercase tracking-widest block mb-2">Preliminary Assessment:</span> ${resultText}`;
+                        analyzeBtn.disabled = false;
+                    };
+                };
+            }
+
+            // --- Lead Forms (Background Web3Forms Submission) ---
+            async function handleLeadSubmit(e, prefix) {
+                e.preventDefault();
+
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.innerHTML = 'SENDING...';
+                submitBtn.disabled = true;
+                
+                const name = document.getElementById(`${prefix}-name`).value;
+                const phone = document.getElementById(`${prefix}-phone`).value;
+                const email = document.getElementById(`${prefix}-email`).value;
+                const issue = document.getElementById(`${prefix}-issue`).value;
+
+                const formData = new FormData();
+                // IMPORTANT: Replace the key below with your actual Web3Forms access key
+                formData.append("access_key", "YOUR_WEB3FORMS_ACCESS_KEY_HERE");
+                formData.append("subject", `AHA Priority Service Request: ${name}`);
+                formData.append("from_name", name);
+                formData.append("email", email);
+                formData.append("phone", phone);
+                formData.append("message", `Equipment & Issue:\n${issue}`);
+
+                try {
+                    const response = await fetch("https://api.web3forms.com/submit", {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        document.getElementById(`${prefix}-container`).classList.add('hidden');
+                        document.getElementById(`${prefix}-success-msg`).classList.remove('hidden');
+                        
+                        setTimeout(() => {
+                            if(prefix === 'lead') closeLeadModal();
+                            setTimeout(() => {
+                                document.getElementById(`${prefix}-container`).classList.remove('hidden');
+                                document.getElementById(`${prefix}-success-msg`).classList.add('hidden');
+                                document.getElementById(`${prefix}-form`).reset();
+                                submitBtn.innerHTML = originalBtnText;
+                                submitBtn.disabled = false;
+                            }, 300);
+                        }, 3500);
+                    } else {
+                        alert("There was an error sending your request. Please check your form configuration.");
+                        submitBtn.innerHTML = originalBtnText;
+                        submitBtn.disabled = false;
+                    }
+                } catch (error) {
+                    alert("Network error. Please check your internet connection.");
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                }
+            }
+
+            // Attach inline form logic
+            const inlineForm = document.getElementById('inline-lead-form');
+            if(inlineForm) inlineForm.addEventListener('submit', (e) => handleLeadSubmit(e, 'inline-lead'));
+
+            // Attach Modal Lead form logic
+            const floatingBtn = document.getElementById('floating-cta');
+            const leadModal = document.getElementById('lead-modal');
+            const leadBackdrop = document.getElementById('lead-modal-backdrop');
+            const leadContent = document.getElementById('lead-modal-content');
+            const closeLeadBtn = document.getElementById('close-lead-modal');
+            const leadForm = document.getElementById('lead-form');
+
+            function openLeadModal() {
+                leadModal.classList.remove('hidden'); leadModal.classList.add('flex');
+                setTimeout(() => { leadBackdrop.classList.remove('opacity-0'); leadContent.classList.remove('scale-95', 'opacity-0'); }, 10);
+            }
+            function closeLeadModal() {
+                leadBackdrop.classList.add('opacity-0'); leadContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => { leadModal.classList.add('hidden'); leadModal.classList.remove('flex'); }, 300);
+            }
+            if(floatingBtn) floatingBtn.addEventListener('click', openLeadModal);
+            if(closeLeadBtn) closeLeadBtn.addEventListener('click', closeLeadModal);
+            if(leadBackdrop) leadBackdrop.addEventListener('click', closeLeadModal);
+            if(leadForm) leadForm.addEventListener('submit', (e) => handleLeadSubmit(e, 'lead'));
+        });
+    </script>
+</body>
+</html>
