@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
-import Legacy from './components/Legacy';
-import Gallery from './components/Gallery';
-import BrandSlider from './components/BrandSlider';
-import Guide from './components/Guide';
-import PCBRepair from './components/PCBRepair';
-import Installation from './components/Installation';
-import ProAudio from './components/ProAudio';
 import Footer from './components/Footer';
 import { LeadModal, DiagnosticModal, ImageModal } from './components/Modals';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FadeIn, CursorGlow, ScrollProgressBar } from './components/animations/index.jsx';
+
+const Legacy = lazy(() => import('./components/Legacy'));
+const Gallery = lazy(() => import('./components/Gallery'));
+const BrandSlider = lazy(() => import('./components/BrandSlider'));
+const Guide = lazy(() => import('./components/Guide'));
+const PCBRepair = lazy(() => import('./components/PCBRepair'));
+const Installation = lazy(() => import('./components/Installation'));
+const ProAudio = lazy(() => import('./components/ProAudio'));
 
 function App() {
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
@@ -33,13 +34,15 @@ function App() {
       <Navbar />
       <HeroSection onOpenDiagnostic={() => setIsDiagModalOpen(true)} />
 
-      <FadeIn><Legacy /></FadeIn>
-      <FadeIn><Gallery onImageClick={(src) => setLightboxImg(src)} /></FadeIn>
-      <FadeIn><BrandSlider /></FadeIn>
-      <FadeIn><Guide /></FadeIn>
-      <FadeIn><PCBRepair /></FadeIn>
-      <FadeIn><Installation /></FadeIn>
-      <FadeIn><ProAudio /></FadeIn>
+      <Suspense fallback={<div className="min-h-screen bg-brandDark-900 flex items-center justify-center"><div className="w-12 h-12 rounded-full border-4 border-brandTeal border-t-transparent animate-spin"></div></div>}>
+        <FadeIn><Legacy /></FadeIn>
+        <FadeIn><Gallery onImageClick={(src) => setLightboxImg(src)} /></FadeIn>
+        <FadeIn><BrandSlider /></FadeIn>
+        <FadeIn><Guide /></FadeIn>
+        <FadeIn><PCBRepair /></FadeIn>
+        <FadeIn><Installation /></FadeIn>
+        <FadeIn><ProAudio /></FadeIn>
+      </Suspense>
       <Footer />
 
       <AnimatePresence>

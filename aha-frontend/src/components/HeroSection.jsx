@@ -121,7 +121,7 @@ export default function HeroSection({ onOpenDiagnostic }) {
               />
 
               <div className="h-40 sm:h-48 w-full relative">
-                <img src="/Gemini_Generated_Image_xi8rhuxi8rhuxi8r.webp" alt="Premium Audio Service" className="w-full h-full object-cover" />
+                <img fetchpriority="high" src="/Gemini_Generated_Image_xi8rhuxi8rhuxi8r.webp" alt="Premium Audio Service" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-brandDark-900 to-transparent" />
                 <div className="absolute bottom-4 left-6">
                   <h3 className="text-xl sm:text-2xl font-black text-white">Priority Service</h3>
