@@ -300,11 +300,9 @@ export const ParticleBackground = ({ count = 24 }) => {
 // FLOATING GLOW BLOB
 // ─────────────────────────────────────────────
 export const FloatingGlow = ({ color = 'rgba(94,161,155,0.08)', size = 400, top, left, right, bottom }) => (
-  <motion.div
+  <div
     className="absolute rounded-full pointer-events-none"
-    style={{ width: size, height: size, background: color, filter: 'blur(80px)', top, left, right, bottom }}
-    animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
-    transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+    style={{ width: size, height: size, background: color, filter: 'blur(80px)', top, left, right, bottom, opacity: 0.8 }}
   />
 );
 
@@ -405,7 +403,7 @@ export const TextReveal = ({ children, delay = 0, className = '' }) => (
   <motion.div
     initial={{ opacity: 0, y: 40 }}
     whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: false, amount: 0.3 }}
+    viewport={{ once: true, amount: 0.3 }}
     transition={{ duration: 0.8, ease: [0.33, 1, 0.68, 1], delay }}
     className={className}
   >
@@ -439,7 +437,7 @@ export const LetterReveal = ({ text, delay = 0, className = '' }) => {
       variants={container}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: false, amount: 0.5 }}
+      viewport={{ once: true, amount: 0.5 }}
     >
       {letters.map((letter, index) => (
         <motion.span variants={child} key={index} className="inline-block whitespace-pre">

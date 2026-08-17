@@ -37,7 +37,6 @@ export default function HeroSection({ onOpenDiagnostic }) {
         backgroundImage: "linear-gradient(to right, rgba(17,17,17,0.97) 20%, rgba(17,17,17,0.75) 100%), url('/luxury-lifestyle-background-interior-exterior-152.webp')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
       }}
     >
       {/* Overlay */}
@@ -47,8 +46,8 @@ export default function HeroSection({ onOpenDiagnostic }) {
       <FloatingGlow color="rgba(94,161,155,0.06)" size={500} top="-10%" left="-5%" />
       <FloatingGlow color="rgba(147,51,234,0.05)" size={400} top="30%" right="-8%" />
 
-      {/* Particles */}
-      <ParticleBackground count={30} />
+      {/* Particles — desktop only for performance */}
+      <ParticleBackground count={12} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
